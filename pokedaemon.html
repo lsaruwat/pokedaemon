@@ -47,20 +47,21 @@
 			<div class="left">
 				<div id="enemyName" class="name"></div>
 				<div id="enemyLevel" class="level"></div>
-				<div id="enemyHealth" class="health"></div>
+				<progress id="enemyHealthBar" class="health"></progress>
 			</div>
 			<div class="right">
-				<img id="enemyImage" class="pokemon" src=""/>
+				<img id="enemyImage" class="pokemon" src="pokesprites/icons/ball/poke.png"/>
 			</div>
 		</div>
 
 		<div id="playerArea" class="fighterArea">	
 			<div class="left">
-				<img id="playerImage" class="pokemon" src=""/>
+				<img id="playerImage" class="pokemon" src="pokesprites/icons/ball/poke.png"/>
 			</div>
 			<div class="right">
 				<div id="playerName" class="name"></div>
 				<div id="playerLevel" class="level"></div>
+				<progress id="playerHealthBar" class="health"></progress>
 				<div id="playerHealth" class="health"></div>
 			</div>
 		</div>
@@ -98,9 +99,10 @@ let enemy = document.getElementById("enemyArea");
 let pName = document.getElementById("playerName");
 let pLevel = document.getElementById("playerLevel");
 let pHealth = document.getElementById("playerHealth");
+let pHealthBar = document.getElementById("playerHealthBar");
 let eName = document.getElementById("enemyName");
 let eLevel = document.getElementById("enemyLevel");
-let eHealth = document.getElementById("enemyHealth");
+let eHealthBar = document.getElementById("enemyHealthBar");
 
 let pImg = document.getElementById("playerImage");
 let eImg = document.getElementById("enemyImage");
@@ -139,13 +141,16 @@ function refreshStats(p1, e1){
 	pName.innerHTML = p1.name;
 	pLevel.innerHTML = "l:" + p1.level;
 	pHealth.innerHTML = "h/p " + p1.currentHp + "/" + p1.hp;
+	pHealthBar.setAttribute("value", p1.currentHp);
+	pHealthBar.setAttribute("max", p1.hp);
 	eName.innerHTML = e1.name;
 	eLevel.innerHTML = "l:" + e1.level;
-	eHealth.innerHTML = "h/p " + e1.currentHp + "/" + e1.hp;
+	eHealthBar.setAttribute("value", e1.currentHp);
+	eHealthBar.setAttribute("max", e1.hp);
 
 	if(e1.isDead()){
 		eImg.setAttribute("src", "img/fatality.gif");
-		location.reload();
+		setTimeout(function(){location.reload()}, 1500);
 	}
 	else if(p1.isDead()){
 		pImg.setAttribute("src", "img/fatality.gif");
@@ -161,24 +166,26 @@ $.get(host + "/pokedaemon/pokesprites/data/pokemon.json", function(data){
   	}
 
 	let rando = Math.floor(Math.random() * Math.floor(pokemon.length));
+	let pLevel = Math.floor(Math.random() * 100);
+	let min  = pLevel-10;
+	min = min <= 1 ? 1 : min;
+	let eLevel = Math.floor(Math.random() * (pLevel-min)) + min;
   	let playerPokemon = pokemon[7];
   	let enemyPokemon = pokemon[rando];
 
-  	pImg.setAttribute("width", width);
-  	eImg.setAttribute("width", width);
-  	pImg.setAttribute("height", height);
-  	eImg.setAttribute("height", height);
 
   	let pSlug = playerPokemon.slug.eng;
   	let eSlug = enemyPokemon.slug.eng;
-  	p1 = new Pokemon(pSlug, 53, 100);
-  	e1 = new Pokemon(eSlug, 48, 100);
+  	p1 = new Pokemon(pSlug, pLevel, 100);
+  	e1 = new Pokemon(eSlug, eLevel, 100);
 
   	fetch(pokeApi + pSlug)
 		.then((resp) => resp.json())
 		.then(function(data){
 			console.log(data);
 			p1.buildFromRequest(data);
+			pImg.setAttribute("width", width);
+  			pImg.setAttribute("height", height);
 			pImg.setAttribute("src", p1.backImage);
 			refreshStats(p1,e1);
 		})
@@ -191,6 +198,8 @@ $.get(host + "/pokedaemon/pokesprites/data/pokemon.json", function(data){
 		.then(function(data){
 			console.log(data);
 			e1.buildFromRequest(data);
+			eImg.setAttribute("width", width);
+  			eImg.setAttribute("height", height);
 			eImg.setAttribute("src", e1.image);
 			refreshStats(p1,e1);
 		})

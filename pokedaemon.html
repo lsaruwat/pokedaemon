@@ -1,15 +1,202 @@
 <html>
 <head>
+<style>
+	#battlefield {
+		border: 1px solid black;
+		max-width: 800px;
+		margin: 0px auto;
+		text-transform: uppercase;
+		padding: 10px;
+	}
+
+	.fighterArea {
+		display: inline-block;
+		width: 100%;
+	}
+
+	.name{
+		font-size: 24px;
+	}
+
+	#enemyArea img{
+		float: right;
+	}
+
+	#playerArea img{
+		float: left;
+	}
+
+	.fighterArea .left{
+		float: left;
+		width: 50%;
+
+	}
+
+	.fighterArea .right{
+		float: right;
+		width: 50%;
+
+	}
+
+
+</style>
 </head>
-<body></body>
+<body>
+	<div id="battlefield">
+		<div id="enemyArea" class="fighterArea">
+			<div class="left">
+				<div id="enemyName" class="name"></div>
+				<div id="enemyLevel" class="level"></div>
+				<div id="enemyHealth" class="health"></div>
+			</div>
+			<div class="right">
+				<img id="enemyImage" class="pokemon" src=""/>
+			</div>
+		</div>
+
+		<div id="playerArea" class="fighterArea">	
+			<div class="left">
+				<img id="playerImage" class="pokemon" src=""/>
+			</div>
+			<div class="right">
+				<div id="playerName" class="name"></div>
+				<div id="playerLevel" class="level"></div>
+				<div id="playerHealth" class="health"></div>
+			</div>
+		</div>
+
+		<div id="commandArea">	
+			<div class="left">
+				<div id="battleText"></div>
+			</div>
+			<div class="right">
+				<div id="playerAttack" class="option"><input type="button" value="Attack"/></div>
+				<div id="playerItem" class="option"><input type="button" value="Item"/></div>
+				<div id="playerPoach" class="option"><input type="button" value="Poach"/></div>
+				<div id="playerRun" class="option"><input type="button" value="Run"/></div>
+			</div>
+		</div>
+	</div>
+</body>
 
 <script src="js/jquery.min.js"></script>
+<script src="js/pokemon.js"></script>
 
 <script type="text/javascript">
-let host = 'http://scriptingaway.com';
-//let host = 'http://localhost'
+const host = 'http://scriptingaway.com';
+const width = 68*5;
+const height = 56*5;
+const imgPath = "pokesprites/pokemon-gen8/regular/";
+const pokeApi = "https://pokeapi.co/api/v2/pokemon/";
+
+let p1 = null;
+let e1 = null;
+
+let player = document.getElementById("playerArea");
+let enemy = document.getElementById("enemyArea");
+
+let pName = document.getElementById("playerName");
+let pLevel = document.getElementById("playerLevel");
+let pHealth = document.getElementById("playerHealth");
+let eName = document.getElementById("enemyName");
+let eLevel = document.getElementById("enemyLevel");
+let eHealth = document.getElementById("enemyHealth");
+
+let pImg = document.getElementById("playerImage");
+let eImg = document.getElementById("enemyImage");
+
+let attackButton = document.getElementById("playerAttack");
+let itemButton = document.getElementById("playerItem");
+let poachButton = document.getElementById("playerPoach");
+let runButton = document.getElementById("playerRun");
+attackButton.addEventListener("click", attack);
+itemButton.addEventListener("click", itemChange);
+poachButton.addEventListener("click", poach);
+runButton.addEventListener("click", run);
+
+
+function attack(e){
+	e1.currentHp -= p1.attack;
+	p1.currentHp -= e1.attack;
+	refreshStats(p1, e1);
+}
+
+function itemChange(){
+
+}
+
+function poach(){
+	pImg.setAttribute("src", "img/gunshot.gif");
+	eImg.setAttribute("src", "img/fatality.gif");
+	e1.currentHp = 0;
+}
+
+function run(){
+
+}
+
+function refreshStats(p1, e1){
+	pName.innerHTML = p1.name;
+	pLevel.innerHTML = "l:" + p1.level;
+	pHealth.innerHTML = "h/p " + p1.currentHp + "/" + p1.hp;
+	eName.innerHTML = e1.name;
+	eLevel.innerHTML = "l:" + e1.level;
+	eHealth.innerHTML = "h/p " + e1.currentHp + "/" + e1.hp;
+
+	if(e1.isDead()){
+		eImg.setAttribute("src", "img/fatality.gif");
+		location.reload();
+	}
+	else if(p1.isDead()){
+		pImg.setAttribute("src", "img/fatality.gif");
+	}
+
+}
+
+let pokemon = [];
+
 $.get(host + "/pokedaemon/pokesprites/data/pokemon.json", function(data){
-  let pokemon = JSON.parse(data);
-  console.log(pokemon);
+  	for(i in data){
+  		pokemon.push(data[i])
+  	}
+
+	let rando = Math.floor(Math.random() * Math.floor(pokemon.length));
+  	let playerPokemon = pokemon[7];
+  	let enemyPokemon = pokemon[rando];
+
+  	pImg.setAttribute("width", width);
+  	eImg.setAttribute("width", width);
+  	pImg.setAttribute("height", height);
+  	eImg.setAttribute("height", height);
+
+  	let pSlug = playerPokemon.slug.eng;
+  	let eSlug = enemyPokemon.slug.eng;
+  	p1 = new Pokemon(pSlug, 53, 100);
+  	e1 = new Pokemon(eSlug, 48, 100);
+
+  	fetch(pokeApi + pSlug)
+		.then((resp) => resp.json())
+		.then(function(data){
+			console.log(data);
+			p1.buildFromRequest(data);
+			pImg.setAttribute("src", p1.backImage);
+			refreshStats(p1,e1);
+		})
+		.catch(function(error){
+		    alert("API Error: " + error);
+		});
+
+	fetch(pokeApi + eSlug)
+		.then((resp) => resp.json())
+		.then(function(data){
+			console.log(data);
+			e1.buildFromRequest(data);
+			eImg.setAttribute("src", e1.image);
+			refreshStats(p1,e1);
+		})
+		.catch(function(error){
+		    alert("API Error: " + error);
+		});
+
 });
 </script>

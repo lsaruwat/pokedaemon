@@ -84,7 +84,7 @@
 <script src="js/pokemon.js"></script>
 
 <script type="text/javascript">
-const host = 'http://scriptingaway.com';
+const host = 'http://saruwatari.net';
 const width = 68*5;
 const height = 56*5;
 const imgPath = "pokesprites/pokemon-gen8/regular/";
@@ -92,6 +92,12 @@ const pokeApi = "https://pokeapi.co/api/v2/pokemon/";
 
 let p1 = null;
 let e1 = null;
+let pokemon = [];
+
+let prLevel = Math.floor(Math.random() * 100);
+let min  = prLevel-10;
+min = min <= 1 ? 1 : min;
+let erLevel = Math.floor(Math.random() * (prLevel-min)) + min;
 
 let player = document.getElementById("playerArea");
 let enemy = document.getElementById("enemyArea");
@@ -153,33 +159,40 @@ function refreshStats(p1, e1){
 		setTimeout(function(){location.reload()}, 1500);
 	}
 	else if(p1.isDead()){
+		let newIndex = Math.floor(Math.random() * Math.floor(pokemon.length));
 		pImg.setAttribute("src", "img/fatality.gif");
+		p1 = new Pokemon(pokemon[newIndex].slug.eng, prLevel, 100);
+		fetch(pokeApi + p1.name)
+		.then((resp) => resp.json())
+		.then(function(data){
+			console.log(data);
+			p1.buildFromRequest(data);
+			pImg.setAttribute("width", width);
+  			pImg.setAttribute("height", height);
+			pImg.setAttribute("src", p1.backImage);
+			refreshStats(p1,e1);
+		})
+		.catch(function(error){
+		    alert("API Error: " + error);
+		});
 	}
 
 }
-
-let pokemon = [];
 
 $.get(host + "/pokedaemon/pokesprites/data/pokemon.json", function(data){
   	for(i in data){
   		pokemon.push(data[i])
   	}
-
 	let rando = Math.floor(Math.random() * Math.floor(pokemon.length));
-	let pLevel = Math.floor(Math.random() * 100);
-	let min  = pLevel-10;
-	min = min <= 1 ? 1 : min;
-	let eLevel = Math.floor(Math.random() * (pLevel-min)) + min;
+
   	let playerPokemon = pokemon[7];
   	let enemyPokemon = pokemon[rando];
 
 
-  	let pSlug = playerPokemon.slug.eng;
-  	let eSlug = enemyPokemon.slug.eng;
-  	p1 = new Pokemon(pSlug, pLevel, 100);
-  	e1 = new Pokemon(eSlug, eLevel, 100);
+  	p1 = new Pokemon(playerPokemon.slug.eng, prLevel, 100);
+  	e1 = new Pokemon(enemyPokemon.slug.eng, erLevel, 100);
 
-  	fetch(pokeApi + pSlug)
+  	fetch(pokeApi + p1.name)
 		.then((resp) => resp.json())
 		.then(function(data){
 			console.log(data);
@@ -193,7 +206,7 @@ $.get(host + "/pokedaemon/pokesprites/data/pokemon.json", function(data){
 		    alert("API Error: " + error);
 		});
 
-	fetch(pokeApi + eSlug)
+	fetch(pokeApi + e1.name)
 		.then((resp) => resp.json())
 		.then(function(data){
 			console.log(data);

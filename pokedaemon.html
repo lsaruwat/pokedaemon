@@ -51,12 +51,14 @@
 			</div>
 			<div class="right">
 				<img id="enemyImage" class="pokemon" src="pokesprites/icons/ball/poke.png"/>
+				<audio id="enemy_audio" src=""></audio>
 			</div>
 		</div>
 
 		<div id="playerArea" class="fighterArea">	
 			<div class="left">
 				<img id="playerImage" class="pokemon" src="pokesprites/icons/ball/poke.png"/>
+				<audio id="player_audio" src=""></audio>
 			</div>
 			<div class="right">
 				<div id="playerName" class="name"></div>
@@ -82,22 +84,14 @@
 
 <script src="js/jquery.min.js"></script>
 <script src="js/pokemon.js"></script>
+<script src="js/pokeDaemonGame.js"></script>
 
 <script type="text/javascript">
-const host = 'http://saruwatari.net';
+const host = "http://" + window.location.host;
 const width = 68*5;
 const height = 56*5;
 const imgPath = "pokesprites/pokemon-gen8/regular/";
 const pokeApi = "https://pokeapi.co/api/v2/pokemon/";
-
-let p1 = null;
-let e1 = null;
-let pokemon = [];
-
-let prLevel = Math.floor(Math.random() * 100);
-let min  = prLevel-10;
-min = min <= 1 ? 1 : min;
-let erLevel = Math.floor(Math.random() * (prLevel-min)) + min;
 
 let player = document.getElementById("playerArea");
 let enemy = document.getElementById("enemyArea");
@@ -117,108 +111,18 @@ let attackButton = document.getElementById("playerAttack");
 let itemButton = document.getElementById("playerItem");
 let poachButton = document.getElementById("playerPoach");
 let runButton = document.getElementById("playerRun");
-attackButton.addEventListener("click", attack);
-itemButton.addEventListener("click", itemChange);
-poachButton.addEventListener("click", poach);
-runButton.addEventListener("click", run);
 
 
-function attack(e){
-	e1.currentHp -= p1.attack;
-	p1.currentHp -= e1.attack;
-	refreshStats(p1, e1);
-}
-
-function itemChange(){
-
-}
-
-function poach(){
-	pImg.setAttribute("src", "img/gunshot.gif");
-	eImg.setAttribute("src", "img/fatality.gif");
-	e1.currentHp = 0;
-}
-
-function run(){
-
-}
-
-function refreshStats(p1, e1){
-	pName.innerHTML = p1.name;
-	pLevel.innerHTML = "l:" + p1.level;
-	pHealth.innerHTML = "h/p " + p1.currentHp + "/" + p1.hp;
-	pHealthBar.setAttribute("value", p1.currentHp);
-	pHealthBar.setAttribute("max", p1.hp);
-	eName.innerHTML = e1.name;
-	eLevel.innerHTML = "l:" + e1.level;
-	eHealthBar.setAttribute("value", e1.currentHp);
-	eHealthBar.setAttribute("max", e1.hp);
-
-	if(e1.isDead()){
-		eImg.setAttribute("src", "img/fatality.gif");
-		setTimeout(function(){location.reload()}, 1500);
-	}
-	else if(p1.isDead()){
-		let newIndex = Math.floor(Math.random() * Math.floor(pokemon.length));
-		pImg.setAttribute("src", "img/fatality.gif");
-		p1 = new Pokemon(pokemon[newIndex].slug.eng, prLevel, 100);
-		fetch(pokeApi + p1.name)
-		.then((resp) => resp.json())
-		.then(function(data){
-			console.log(data);
-			p1.buildFromRequest(data);
-			pImg.setAttribute("width", width);
-  			pImg.setAttribute("height", height);
-			pImg.setAttribute("src", p1.backImage);
-			refreshStats(p1,e1);
-		})
-		.catch(function(error){
-		    alert("API Error: " + error);
-		});
-	}
-
-}
-
-$.get(host + "/pokedaemon/pokesprites/data/pokemon.json", function(data){
-  	for(i in data){
-  		pokemon.push(data[i])
-  	}
-	let rando = Math.floor(Math.random() * Math.floor(pokemon.length));
-
-  	let playerPokemon = pokemon[7];
-  	let enemyPokemon = pokemon[rando];
+let game = new PokeDaemonGame();
 
 
-  	p1 = new Pokemon(playerPokemon.slug.eng, prLevel, 100);
-  	e1 = new Pokemon(enemyPokemon.slug.eng, erLevel, 100);
+attackButton.addEventListener("click", game.attack);
+itemButton.addEventListener("click", game.itemChange);
+poachButton.addEventListener("click", game.poach);
+runButton.addEventListener("click", game.run);
 
-  	fetch(pokeApi + p1.name)
-		.then((resp) => resp.json())
-		.then(function(data){
-			console.log(data);
-			p1.buildFromRequest(data);
-			pImg.setAttribute("width", width);
-  			pImg.setAttribute("height", height);
-			pImg.setAttribute("src", p1.backImage);
-			refreshStats(p1,e1);
-		})
-		.catch(function(error){
-		    alert("API Error: " + error);
-		});
 
-	fetch(pokeApi + e1.name)
-		.then((resp) => resp.json())
-		.then(function(data){
-			console.log(data);
-			e1.buildFromRequest(data);
-			eImg.setAttribute("width", width);
-  			eImg.setAttribute("height", height);
-			eImg.setAttribute("src", e1.image);
-			refreshStats(p1,e1);
-		})
-		.catch(function(error){
-		    alert("API Error: " + error);
-		});
+game.initAll();
 
-});
+
 </script>

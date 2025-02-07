@@ -17,6 +17,7 @@ class Pokemon{
 	baseSpecialDefense=0;
 	baseSpeed=0;
 	image;
+	cries;
 	backImage;
 	types = [];
 	moves = [];
@@ -52,14 +53,24 @@ class Pokemon{
 		this.baseSpecialDefense = data.stats[4].base_stat;
 		this.baseSpeed = data.stats[5].base_stat;
 		this.image = data.sprites.front_default;
+		this.cries = data.cries.latest;
 		this.backImage = data.sprites.back_default;
-		for(i in data.moves){
+		for(let i in data.moves){
 			this.moves.push(data.moves[i].move);
 		}
-		for(i in data.types){
+		for(let i in data.types){
 			this.types.push(data.types[i].type);
 		}
 
+		this.calculateStats();
+	}
+
+	isDead(){
+		return (this.currentHp <= 0 ? true : false);
+	}
+
+	calculateStats(){
+		this.statModifier = this.level * 0.5;
 		this.hp = this.baseHp*this.level;
 		this.attack = Math.round(this.baseAttack*this.statModifier);
 		this.defense = Math.round(this.baseDefense*this.statModifier);
@@ -68,9 +79,5 @@ class Pokemon{
 		this.speed = Math.round(this.baseSpeed*this.statModifier);
 		this.xp = this.baseXp + this.xp;
 		this.currentHp = this.hp;
-	}
-
-	isDead(){
-		return (this.currentHp <= 0 ? true : false);
 	}
 }

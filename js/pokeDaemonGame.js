@@ -7,6 +7,7 @@ class PokeDaemonGame{
 	p1 = null;
 	e1 = null;
 	pokemon = [];
+	cachedApiPokemon = [];
 
 
 	constructor(){
@@ -20,8 +21,7 @@ class PokeDaemonGame{
 	}
 
 
-	attack(e){
-		let _this = this;
+	attack(){
 		this.e1.currentHp -= this.p1.attack;
 		this.p1.currentHp -= this.e1.attack;
 		this.refreshStats();
@@ -46,12 +46,10 @@ class PokeDaemonGame{
 	setLevels(playerLevel=null, enemyLevel=null){
 		if(!playerLevel) this.playerLevel = Math.floor(Math.random() * 100);
 		else this.playerLevel = playerLevel;
-		console.log("Player Level: " + this.playerLevel);
 		let min  = this.playerLevel-10;
 		min = min <= 1 ? 1 : min;
 		if(!enemyLevel) this.enemyLevel = Math.floor(Math.random() * (this.playerLevel-min)) + min;
 		else this.enemyLevel = enemyLevel;
-		console.log("Enemy Level: " + this.enemyLevel);
 	}
 
 	getNewEnemy(pokeIndex=null){
@@ -60,23 +58,34 @@ class PokeDaemonGame{
 	  	this.enemyPokemon = this.pokemon[pokeIndex];
 
 	  	this.e1 = new Pokemon(this.enemyPokemon.slug.eng, this.enemyLevel, 100);
-
-	  	let _this = this;
-		fetch(pokeApi + this.e1.name)
-			.then((resp) => resp.json())
-			.then(function(data){
-				console.log(data);
-				_this.e1.buildFromRequest(data);
+  		if(this.cachedApiPokemon[this.e1.name]){
+  			console.log("POKEMON " + this.e1.name +  " found in cache!");
+  			this.e1.buildFromRequest(this.cachedApiPokemon[this.e1.name]);
 				eImg.setAttribute("width", width);
 	  			eImg.setAttribute("height", height);
-				eImg.setAttribute("src", _this.e1.image);
-				enemy_audio.setAttribute("src", _this.e1.cries);
+				eImg.setAttribute("src", this.e1.image);
+				enemy_audio.setAttribute("src", this.e1.cries);
 				enemy_audio.play();
-				_this.refreshStats();
-			})
-			.catch(function(error){
-			    console.log("API Error: " + error);
-			});
+				this.refreshStats();
+  		}
+  		else{
+  			let self = this;
+			fetch(pokeApi + this.e1.name)
+				.then((resp) => resp.json())
+				.then(function(data){
+					self.e1.buildFromRequest(data);
+					eImg.setAttribute("width", width);
+		  			eImg.setAttribute("height", height);
+					eImg.setAttribute("src", self.e1.image);
+					enemy_audio.setAttribute("src", self.e1.cries);
+					enemy_audio.play();
+					self.refreshStats();
+					if(self.cachedApiPokemon[self.e1.name] === undefined) self.cachedApiPokemon[self.e1.name] = data; 
+				})
+				.catch(function(error){
+				    console.log("API Error: " + error);
+				});
+  		}
 	}
 
 	getNewPlayer(pokeIndex=null){
@@ -85,23 +94,34 @@ class PokeDaemonGame{
 	  	this.playerPokemon = this.pokemon[pokeIndex];
 
 	  	this.p1 = new Pokemon(this.playerPokemon.slug.eng, this.playerLevel, 100);
-
-		let _this = this;
-	  	fetch(pokeApi + this.p1.name)
-			.then((resp) => resp.json())
-			.then(function(data){
-				console.log(data);
-				_this.p1.buildFromRequest(data);
+	  	if(this.cachedApiPokemon[this.p1.name]){
+  			console.log("POKEMON " + this.p1.name +  " found in cache!");
+  			this.p1.buildFromRequest(this.cachedApiPokemon[this.p1.name]);
 				pImg.setAttribute("width", width);
 	  			pImg.setAttribute("height", height);
-				pImg.setAttribute("src", _this.p1.backImage);
-				player_audio.setAttribute("src", _this.p1.cries);
+				pImg.setAttribute("src", this.p1.backImage);
+				player_audio.setAttribute("src", this.p1.cries);
 				player_audio.play();
-				_this.refreshStats();
-			})
-			.catch(function(error){
-			    console.log("API Error: " + error);
-			});
+				this.refreshStats();
+  		}
+  		else{
+			let self = this;
+		  	fetch(pokeApi + this.p1.name)
+				.then((resp) => resp.json())
+				.then(function(data){
+					self.p1.buildFromRequest(data);
+					pImg.setAttribute("width", width);
+		  			pImg.setAttribute("height", height);
+					pImg.setAttribute("src", self.p1.backImage);
+					player_audio.setAttribute("src", self.p1.cries);
+					player_audio.play();
+					self.refreshStats();
+					if(self.cachedApiPokemon[self.p1.name] === undefined) self.cachedApiPokemon[self.p1.name] = data;
+				})
+				.catch(function(error){
+				    console.log("API Error: " + error);
+				});
+		}
 	}
 
 	refreshStats(){
@@ -118,12 +138,16 @@ class PokeDaemonGame{
 		if(this.e1.isDead()){
 			eImg.setAttribute("src", "img/fatality.gif");
 			this.getNewEnemy();
-			this.p1.currentHp*=1.5;
-			this.p1.level++;
+			this.p1.setCurrentHp(this.p1.currentHp*1.5);
+			this.p1.xp+=this.e1.xp;
+			this.p1.calculateStats();
 		}
 		else if(this.p1.isDead()){
 			let newIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
 			this.getNewPlayer();
+			this.e1.setCurrentHp(this.e1.currentHp*1.1);
+			this.e1.xp+=this.p1.xp;
+			this.e1.calculateStats();
 		}
 
 	}
@@ -134,14 +158,14 @@ class PokeDaemonGame{
 	}
 
 	initAll(){
-		let _this = this;
-		let temp = [];
+		let self = this;
 		$.get(host + "/pokedaemon/pokesprites/data/pokemon.json", function(data){
+			let temp = [];
 	  		for(let i in data){
 	  			temp.push(data[i])
 	  		}
-	  		_this.pokemon = temp;
-	  		_this.refreshPokemon();	
+	  		self.pokemon = temp;
+	  		self.refreshPokemon();	
 	  	});
 	}
 }

@@ -30,6 +30,7 @@ class Pokemon{
 	speed=0;
 	//battle attributes
 	currentHp=1;
+	levelUpThreshold = 200;
 
 
 	
@@ -39,6 +40,10 @@ class Pokemon{
 		this.xp = xp;
 		this.statModifier = this.level * 0.1;
 		this.url = this.apiUrl + "pokemon/" + name;
+	}
+
+	setCurrentHp(hp){
+		this.currentHp = (hp > this.hp ? this.hp : hp);
 	}
 
 	buildFromRequest(data){
@@ -69,6 +74,13 @@ class Pokemon{
 		return (this.currentHp <= 0 ? true : false);
 	}
 
+	levelUp(){
+		while(this.xp > this.levelUpThreshold){
+			this.level++;
+			this.xp = this.xp - this.levelUpThreshold;
+		}
+	}
+
 	calculateStats(){
 		this.statModifier = this.level * 0.5;
 		this.hp = this.baseHp*this.level;
@@ -79,5 +91,6 @@ class Pokemon{
 		this.speed = Math.round(this.baseSpeed*this.statModifier);
 		this.xp = this.baseXp + this.xp;
 		this.currentHp = this.hp;
+		this.levelUp();
 	}
 }

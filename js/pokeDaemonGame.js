@@ -13,6 +13,7 @@ class PokeDaemonGame{
 	pokeBelt = [];
 	rareAlerted = false;
 	achievements = null;
+	staticRareIndex = null;
 
 
 	constructor(){
@@ -95,23 +96,24 @@ class PokeDaemonGame{
 	}
 
 	getAchievements(){
-		this.achievements = localStorage.getItem("pokedaemonAchievements") ? localStorage.getItem("pokedaemonAchievements") : [];
+		this.achievements = localStorage.getItem("pokedaemonAchievements") ? JSON.parse(localStorage.getItem("pokedaemonAchievements")) : [];
 	}
 
 	setAchievements(){
 		let achievements = localStorage.getItem("pokedaemonAchievements");
-		if(achievements !== undefined) achievements.push(this.goalPokemon);
+		if(achievements !== null) achievements.push(this.goalPokemon);
 		else achievements = [this.goalPokemon];
-		localStorage.setItem("pokedaemonAchievements", achievements);
+		localStorage.setItem("pokedaemonAchievements", JSON.stringify(achievements));
 	}
 
 
 
 	displayAchievements(){
-		for(let achievement in this.achievements){
+		for(let i in this.achievements){
 			let image = document.createElement('img');
 			image.setAttribute("style", "background-image: url('img/holographic.webp')");
-			image.setAttribute("src", achievement.image);
+			image.setAttribute("src", this.achievements[i].image);
+			achievementsDom.appendChild(image);
 
 		}
 	}
@@ -174,6 +176,7 @@ class PokeDaemonGame{
 	}
 
 	getGoalPokemon(pokeIndex=null){
+		if(this.staticRareIndex) pokeIndex = this.staticRareIndex;
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
 	  	let goalPokemon = this.pokemon[pokeIndex];
 
@@ -290,11 +293,13 @@ class PokeDaemonGame{
 			if(this.p1 === undefined)this.getNewPlayer();
 		}
 
+		if(this.achievements) this.displayAchievements;
+
 	}
 
 	refreshPokemon(){
 		this.getNewPlayer();
-		this.getNewEnemy();
+		this.getNewEnemy(this.staticRareIndex);
 	}
 
 	initAll(){
@@ -306,6 +311,8 @@ class PokeDaemonGame{
 	  		}
 	  		self.pokemon = temp;
 	  		self.getGameGoal();
+	  		self.getAchievements();
+	  		self.displayAchievements();
 	  		self.refreshPokemon();
 	  	});
 	}

@@ -1,6 +1,16 @@
 <html>
 <head>
 <style>
+
+	#goalArea{
+		width: 100%;
+		display: inline-block;
+	}
+
+	#gameGoal{
+		text-align: auto;
+	}
+
 	#battlefield {
 		border: 1px solid black;
 		max-width: 800px;
@@ -26,6 +36,10 @@
 		float: left;
 	}
 
+	#commandArea{
+		display: inline-block;
+	}
+
 	.fighterArea .left{
 		float: left;
 		width: 50%;
@@ -42,6 +56,11 @@
 </style>
 </head>
 <body>
+
+	<div id="goalArea">
+		<img id="gameGoalImg"/>
+		<div id="gameGoal"></div>
+	</div>
 	<div id="battlefield">
 		<div id="enemyArea" class="fighterArea">
 			<div class="left">
@@ -75,9 +94,16 @@
 			<div class="right">
 				<div id="playerAttack" class="option"><input type="button" value="Attack"/></div>
 				<div id="playerItem" class="option"><input type="button" value="Item"/></div>
+				<div id="switchPokemon" class="option"><input type="button" value="Switch"/></div>
 				<div id="playerPoach" class="option"><input type="button" value="Poach"/></div>
 				<div id="playerRun" class="option"><input type="button" value="Run"/></div>
+				<div id="releasePokemon" class="option"><input type="button" value="Release"/></div>
 			</div>
+		</div>
+	</div>
+	<div id="controlArea">
+		<div id="playerBelt">
+			<img id="ball-0" class="ball" src="pokesprites/icons/ball/poke.png"/>
 		</div>
 	</div>
 </body>
@@ -92,6 +118,9 @@ const width = 68*5;
 const height = 56*5;
 const imgPath = "pokesprites/pokemon-gen8/regular/";
 const pokeApi = "https://pokeapi.co/api/v2/pokemon/";
+
+let gameGoalDom = document.getElementById("gameGoal");
+let gameGoalImgDom = document.getElementById("gameGoalImg");
 
 let player = document.getElementById("playerArea");
 let enemy = document.getElementById("enemyArea");
@@ -109,8 +138,12 @@ let eImg = document.getElementById("enemyImage");
 
 let attackButton = document.getElementById("playerAttack");
 let itemButton = document.getElementById("playerItem");
+let switchButton = document.getElementById("switchPokemon");
 let poachButton = document.getElementById("playerPoach");
 let runButton = document.getElementById("playerRun");
+let releaseButton = document.getElementById("releasePokemon");
+
+let playerBelt = document.getElementById("playerBelt");
 
 
 let game = new PokeDaemonGame();
@@ -118,8 +151,10 @@ let game = new PokeDaemonGame();
 
 attackButton.addEventListener("click", game.attack);
 itemButton.addEventListener("click", game.itemChange);
+switchButton.addEventListener("click", game.switchPokemon);
 poachButton.addEventListener("click", game.poach);
 runButton.addEventListener("click", game.run);
+releaseButton.addEventListener("click", game.release);
 
 
 game.initAll();

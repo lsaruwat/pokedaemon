@@ -81,6 +81,11 @@ class Pokemon{
 		}
 	}
 
+	heal(healAmountPercent){
+		this.currentHp = this.hp * (1+(.01*healAmountPercent));
+		if(this.currentHp<=0) this.currentHp=1;
+	}
+
 	calculateStats(){
 		this.statModifier = this.level * 0.5;
 		this.hp = this.baseHp*this.level;

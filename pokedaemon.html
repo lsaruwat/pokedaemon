@@ -3,12 +3,13 @@
 <style>
 
 	#goalArea{
-		width: 100%;
-		display: inline-block;
+		max-width: 800px;
+		margin: 0px auto;
+		margin-bottom: 10px;
 	}
 
 	#gameGoal{
-		text-align: auto;
+		display: inline-block;
 	}
 
 	#battlefield {
@@ -38,6 +39,7 @@
 
 	#commandArea{
 		display: inline-block;
+		margin: 0px auto;
 	}
 
 	.fighterArea .left{
@@ -50,6 +52,16 @@
 		float: right;
 		width: 50%;
 
+	}
+
+	#controlArea{
+		max-width: 800px;
+		margin: 0px auto;
+	}
+
+	#achievementsArea{
+		position: fixed;
+    	bottom: 0;
 	}
 
 
@@ -106,6 +118,9 @@
 			<img id="ball-0" class="ball" src="pokesprites/icons/ball/poke.png"/>
 		</div>
 	</div>
+	<div id="achievementsArea">
+		<h1>Achievements</h1>
+	</div>
 </body>
 
 <script src="js/jquery.min.js"></script>
@@ -155,6 +170,36 @@ switchButton.addEventListener("click", game.switchPokemon);
 poachButton.addEventListener("click", game.poach);
 runButton.addEventListener("click", game.run);
 releaseButton.addEventListener("click", game.release);
+
+
+//keyboard shortcuts for actions
+window.addEventListener("keyup", function(event) {
+	console.log(event.key);
+	if(event.key === "Enter") {
+		event.preventDefault();
+		game.attack();
+	}
+	else if(event.key === 'ArrowUp'){
+		event.preventDefault();
+		game.attack();
+	}
+	else if(event.key === 'ArrowDown'){
+		event.preventDefault();
+		game.run();
+	}
+	else if(event.key === 'ArrowLeft'){
+		event.preventDefault();
+		game.switchPokemon('left');
+	}
+	else if(event.key === 'ArrowRight'){
+		event.preventDefault();
+		game.switchPokemon('right');
+	}
+	else if(event.key === 'Delete'){
+		event.preventDefault();
+		game.release();
+	}
+});
 
 
 game.initAll();

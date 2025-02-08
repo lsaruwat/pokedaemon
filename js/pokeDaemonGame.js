@@ -11,6 +11,7 @@ class PokeDaemonGame{
 	pokemon = [];
 	cachedApiPokemon = [];
 	pokeBelt = [];
+	rareAlerted = false;
 
 
 	constructor(){
@@ -36,10 +37,12 @@ class PokeDaemonGame{
 		//TODO
 	}
 
-	switchPokemon(){
+	switchPokemon(direction=null){
 		let nameArr = Object.keys(this.pokeBelt); // get the names in the belt as an array;
 		let currentIndex = nameArr.indexOf(this.p1.name);
-		let nextIndex = currentIndex === nameArr.length-1 ? 0 : currentIndex+1;
+		let nextIndex = null;
+		if(direction === 'left') nextIndex = currentIndex === 0 ? nameArr.length-1 : currentIndex-1;
+		else nextIndex = currentIndex === nameArr.length-1 ? 0 : currentIndex+1;
 		let nextName = nameArr[nextIndex];
 		this.p1 = this.pokeBelt[nextName];
 		this.refreshDom();
@@ -73,6 +76,7 @@ class PokeDaemonGame{
 	}
 
 	getGameGoal(pokeIndex=null){
+		this.rareAlerted = false;
 		this.getGoalPokemon(pokeIndex);
 	}
 
@@ -215,7 +219,13 @@ class PokeDaemonGame{
 	refreshDom(poach=false){
 		if(this.goalPokemon){
 			this.checkGameGoal();
-			if(this.e1.name === this.goalPokemon.name) eImg.setAttribute("style", "background-image: url('img/holographic.webp')");
+			if(this.e1.name === this.goalPokemon.name) {
+				eImg.setAttribute("style", "background-image: url('img/holographic.webp')");
+				if(!this.rareAlerted) {
+						window.alert("FOUND RARE POKEMON!!!!!!");
+						this.rareAlerted = true;
+					}
+			}
 			else eImg.setAttribute("style", "border: none;");
 			if(this.p1.name === this.goalPokemon.name) pImg.setAttribute("style", "background-image: url('img/holographic.webp')");
 			else pImg.setAttribute("style", "border: none;");

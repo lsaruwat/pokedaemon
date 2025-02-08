@@ -85,6 +85,7 @@ class PokeDaemonGame{
 	checkGameGoal(){
 		if(this.checkForWin()) {
 			this.setAchievements();
+			this.displayAchievements();
 			window.alert("YOU WIN!!!!!!!!!!!!!!!!!!!!!");
 			this.getGameGoal();
 		}
@@ -100,15 +101,20 @@ class PokeDaemonGame{
 	}
 
 	setAchievements(){
-		let achievements = localStorage.getItem("pokedaemonAchievements");
-		if(achievements !== null) achievements.push(this.goalPokemon);
-		else achievements = [this.goalPokemon];
-		localStorage.setItem("pokedaemonAchievements", JSON.stringify(achievements));
+		if(this.achievements !== null) this.achievements.push(this.goalPokemon);
+		else this.achievements = [this.goalPokemon];
+		localStorage.setItem("pokedaemonAchievements", JSON.stringify(this.achievements));
 	}
 
 
 
 	displayAchievements(){
+		let oldImages = achievementsDom.getElementsByTagName('img');
+		if(oldImages.length>0){
+			for(let i in oldImages){
+				oldImages[i].remove();
+			}
+		}
 		for(let i in this.achievements){
 			let image = document.createElement('img');
 			image.setAttribute("style", "background-image: url('img/holographic.webp')");
@@ -180,7 +186,7 @@ class PokeDaemonGame{
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
 	  	let goalPokemon = this.pokemon[pokeIndex];
 
-	  	this.goalPokemon = new Pokemon(goalPokemon.slug.eng, 125, 100);
+	  	this.goalPokemon = new Pokemon(goalPokemon.slug.eng, 50, 100);
   		if(this.cachedApiPokemon[this.goalPokemon.name]){
   			console.log("POKEMON " + this.goalPokemon.name +  " found in cache!");
   			this.goalPokemon.buildFromRequest(this.cachedApiPokemon[this.goalPokemon.name]);

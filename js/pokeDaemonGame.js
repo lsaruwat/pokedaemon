@@ -12,6 +12,7 @@ class PokeDaemonGame{
 	cachedApiPokemon = [];
 	pokeBelt = [];
 	rareAlerted = false;
+	achievements = null;
 
 
 	constructor(){
@@ -82,6 +83,7 @@ class PokeDaemonGame{
 
 	checkGameGoal(){
 		if(this.checkForWin()) {
+			this.setAchievements();
 			window.alert("YOU WIN!!!!!!!!!!!!!!!!!!!!!");
 			this.getGameGoal();
 		}
@@ -90,6 +92,28 @@ class PokeDaemonGame{
 	checkForWin(){
 		if(this.p1.name === this.goalPokemon.name && this.p1.level >= 125) return true;
 		else return false
+	}
+
+	getAchievements(){
+		this.achievements = localStorage.getItem("pokedaemonAchievements") ? localStorage.getItem("pokedaemonAchievements") : [];
+	}
+
+	setAchievements(){
+		let achievements = localStorage.getItem("pokedaemonAchievements");
+		if(achievements !== undefined) achievements.push(this.goalPokemon);
+		else achievements = [this.goalPokemon];
+		localStorage.setItem("pokedaemonAchievements", achievements);
+	}
+
+
+
+	displayAchievements(){
+		for(let achievement in this.achievements){
+			let image = document.createElement('img');
+			image.setAttribute("style", "background-image: url('img/holographic.webp')");
+			image.setAttribute("src", achievement.image);
+
+		}
 	}
 
 	getNewEnemy(pokeIndex=null){

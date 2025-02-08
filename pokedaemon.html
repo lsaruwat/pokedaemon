@@ -123,6 +123,12 @@
 		<div id="playerBelt">
 			<img id="ball-0" class="ball" src="pokesprites/icons/ball/poke.png"/>
 		</div>
+		<div id="gameOptions">
+			<label for="catchEnabled">Auto Catch</label>
+			<input id="catchEnabled" type="checkbox"/>
+			<label for="soundEnabled">Sound</label>
+			<input id="soundEnabled" type="checkbox"/>
+		</div>
 	</div>
 	<div id="achievementsArea">
 		<h1>Achievements</h1>
@@ -165,6 +171,9 @@ let runButton = document.getElementById("playerRun");
 let releaseButton = document.getElementById("releasePokemon");
 
 let playerBelt = document.getElementById("playerBelt");
+let gameOptions = document.getElementById("gameOptions");
+let catchEnabledButton = document.getElementById("catchEnabled");
+let soundEnabledButton = document.getElementById("soundEnabled");
 let achievementsDom = document.getElementById("achievementsArea");
 
 
@@ -177,6 +186,8 @@ switchButton.addEventListener("click", game.switchPokemon);
 poachButton.addEventListener("click", game.poach);
 runButton.addEventListener("click", game.run);
 releaseButton.addEventListener("click", game.release);
+catchEnabledButton.addEventListener("click", game.checkAutoCatch);
+soundEnabledButton.addEventListener("click", game.checkSound);
 
 
 //keyboard shortcuts for actions

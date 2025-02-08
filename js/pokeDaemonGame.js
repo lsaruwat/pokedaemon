@@ -14,6 +14,8 @@ class PokeDaemonGame{
 	rareAlerted = false;
 	achievements = null;
 	staticRareIndex = null;
+	autoCatch = false;
+	soundEnabled = false;
 
 
 	constructor(){
@@ -24,6 +26,8 @@ class PokeDaemonGame{
     	this.poach = this.poach.bind(this);
     	this.run = this.run.bind(this);
     	this.release = this.release.bind(this);
+    	this.checkAutoCatch = this.checkAutoCatch.bind(this);
+    	this.checkSound = this.checkSound.bind(this);
 
 		console.log("Game created!");
 	}
@@ -65,6 +69,14 @@ class PokeDaemonGame{
 		this.removePokemonFromBelt(this.p1);
 		this.getFirstPokemonFromBelt();
 		this.refreshDom();
+	}
+
+	checkAutoCatch(){
+		this.autoCatch =  catchEnabledButton.checked ? true : false;
+	}
+
+	checkSound(){
+		this.soundEnabled =  soundEnabledButton.checked ? true : false;
 	}
 
 
@@ -134,7 +146,7 @@ class PokeDaemonGame{
   			console.log("POKEMON " + this.e1.name +  " found in cache!");
   			this.e1.buildFromRequest(this.cachedApiPokemon[this.e1.name]);
 				this.refreshDom();
-				enemy_audio.play();
+				if(this.soundEnabled)enemy_audio.play();
   		}
   		else{
   			let self = this;
@@ -143,7 +155,7 @@ class PokeDaemonGame{
 				.then(function(data){
 					self.e1.buildFromRequest(data);
 					self.refreshDom();
-					enemy_audio.play();
+					if(self.soundEnabled)enemy_audio.play();
 					if(self.cachedApiPokemon[self.e1.name] === undefined) self.cachedApiPokemon[self.e1.name] = data; 
 				})
 				.catch(function(error){
@@ -163,7 +175,7 @@ class PokeDaemonGame{
   			console.log("POKEMON " + this.p1.name +  " found in cache!");
   			this.p1.buildFromRequest(this.cachedApiPokemon[this.p1.name]);
 				this.refreshDom();
-				player_audio.play();
+				if(this.soundEnabled)player_audio.play();
   		}
   		else{
 			let self = this;
@@ -172,7 +184,7 @@ class PokeDaemonGame{
 				.then(function(data){
 					self.p1.buildFromRequest(data);
 					self.refreshDom();
-					player_audio.play();
+					if(self.soundEnabled)player_audio.play();
 					if(self.cachedApiPokemon[self.p1.name] === undefined) self.cachedApiPokemon[self.p1.name] = data;
 				})
 				.catch(function(error){
@@ -283,8 +295,8 @@ class PokeDaemonGame{
 
 		if(this.e1.isDead()){
 			eImg.setAttribute("src", "img/fatality.gif");
-			if(!poach)this.catchPokemon(this.e1);
-			this.getNewEnemy();;
+			if(this.autoCatch && !poach)this.catchPokemon(this.e1);
+			this.getNewEnemy();
 			this.p1.xp+=this.e1.xp;
 			this.healBelt();
 			this.p1.calculateStats();

@@ -63,6 +63,7 @@ class PokeDaemonGame{
 
 	run(){
 		this.getNewEnemy();
+		this.refreshDom();
 	}
 
 	release(){
@@ -80,13 +81,11 @@ class PokeDaemonGame{
 	}
 
 
-	setLevels(playerLevel=null, enemyLevel=null){
-		if(!playerLevel) this.playerLevel = Math.floor(Math.random() * 100);
-		else this.playerLevel = playerLevel;
-		let min  = this.playerLevel-10;
-		min = min <= 1 ? 1 : min;
-		if(!enemyLevel) this.enemyLevel = Math.floor(Math.random() * (this.playerLevel-min)) + min;
-		else this.enemyLevel = enemyLevel;
+	getLevel(min=1, max=100){
+		max = max>100 ? 100 : max;
+		min = Math.ceil(min);
+    	max = Math.floor(max);
+    	return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 
 	getGameGoal(pokeIndex=null){
@@ -118,8 +117,6 @@ class PokeDaemonGame{
 		localStorage.setItem("pokedaemonAchievements", JSON.stringify(this.achievements));
 	}
 
-
-
 	displayAchievements(){
 		let oldImages = achievementsDom.getElementsByTagName('img');
 		if(oldImages.length>0){
@@ -137,11 +134,10 @@ class PokeDaemonGame{
 	}
 
 	getNewEnemy(pokeIndex=null){
-		this.setLevels(this.initPlayerLevel);
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
 	  	this.enemyPokemon = this.pokemon[pokeIndex];
 
-	  	this.e1 = new Pokemon(this.enemyPokemon.slug.eng, this.enemyLevel, 100);
+	  	this.e1 = new Pokemon(this.enemyPokemon.slug.eng, this.getLevel(1,this.p1.level+20), 0);
   		if(this.cachedApiPokemon[this.e1.name]){
   			console.log("POKEMON " + this.e1.name +  " found in cache!");
   			this.e1.buildFromRequest(this.cachedApiPokemon[this.e1.name]);
@@ -165,11 +161,10 @@ class PokeDaemonGame{
 	}
 
 	getNewPlayer(pokeIndex=null){
-		this.setLevels();
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
 	  	this.playerPokemon = this.pokemon[pokeIndex];
 
-	  	this.p1 = new Pokemon(this.playerPokemon.slug.eng, this.playerLevel, 100);
+	  	this.p1 = new Pokemon(this.playerPokemon.slug.eng, this.getLevel(10,50), 0);
 	  	this.pokeBelt[this.p1.name] = this.p1;
 	  	if(this.cachedApiPokemon[this.p1.name]){
   			console.log("POKEMON " + this.p1.name +  " found in cache!");
@@ -234,6 +229,7 @@ class PokeDaemonGame{
 
 	catchPokemon(pokemon){
 		// TODO MATH ON FAIL OR SUCCESS
+		pokemon.currentHp = 50;
 		if(Object.keys(this.pokeBelt).length <= 6) this.addPokemonToBelt(pokemon);
 	}
 
@@ -294,11 +290,11 @@ class PokeDaemonGame{
 		enemy_audio.setAttribute("src", this.e1.cries);
 
 		if(this.e1.isDead()){
-			eImg.setAttribute("src", "img/fatality.gif");
-			if(this.autoCatch && !poach)this.catchPokemon(this.e1);
-			this.getNewEnemy();
-			this.p1.xp+=this.e1.xp;
 			this.healBelt();
+			this.p1.xp+=this.e1.xp;
+			eImg.setAttribute("src", "img/fatality.gif");
+			if(this.autoCatch && !poach) this.catchPokemon(this.e1);
+			this.getNewEnemy();
 			this.p1.calculateStats();
 		}
 		else if(this.p1.isDead()){

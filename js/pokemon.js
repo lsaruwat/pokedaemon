@@ -30,7 +30,8 @@ class Pokemon{
 	speed=0;
 	//battle attributes
 	currentHp=1;
-	levelUpThreshold = 200;
+	levelUpThreshold = 1000;
+	maxLevel = 125;
 
 
 	
@@ -75,14 +76,20 @@ class Pokemon{
 	}
 
 	levelUp(){
-		while(this.xp > this.levelUpThreshold){
-			this.level++;
-			this.xp = this.xp - this.levelUpThreshold;
+		if(this.level<this.maxLevel){
+			while(this.xp > this.levelUpThreshold*(this.level*.05)){
+				this.level++;
+				this.xp = this.xp - this.levelUpThreshold;
+			}
+
 		}
 	}
 
 	heal(healAmountPercent){
-		this.currentHp = this.hp * (1+(.01*healAmountPercent));
+		let healthPercent = this.hp * (.01*healAmountPercent)
+		this.currentHp+= healthPercent;
+
+		if(this.currentHp>=this.hp) this.currentHp = this.hp;
 		if(this.currentHp<=0) this.currentHp=1;
 	}
 
@@ -94,7 +101,7 @@ class Pokemon{
 		this.specialAttack = Math.round(this.baseSpecialAttack*this.statModifier);
 		this.specialDefense = Math.round(this.baseSpecialDefense*this.statModifier);
 		this.speed = Math.round(this.baseSpeed*this.statModifier);
-		this.xp = this.baseXp + this.xp;
+		this.xp = Math.round(this.baseXp*this.statModifier);
 		this.currentHp = this.hp;
 		this.levelUp();
 	}

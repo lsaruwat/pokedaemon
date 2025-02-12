@@ -83,6 +83,7 @@ class Pokemon{
 			}
 
 		}
+		this.calculateStats();
 	}
 
 	heal(healAmountPercent){
@@ -103,6 +104,5 @@ class Pokemon{
 		this.speed = Math.round(this.baseSpeed*this.statModifier);
 		this.xp = Math.round(this.baseXp*this.statModifier);
 		this.currentHp = this.hp;
-		this.levelUp();
 	}
 }

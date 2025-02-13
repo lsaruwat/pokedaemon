@@ -125,13 +125,12 @@
 		</div>
 		<div id="gameOptions">
 			<label for="catchEnabled">Auto Catch</label>
-			<input id="catchEnabled" type="checkbox"/>
+			<input id="catchEnabled" type="checkbox" checked/>
 			<label for="soundEnabled">Sound</label>
 			<input id="soundEnabled" type="checkbox"/>
 		</div>
 	</div>
 	<div id="achievementsArea">
-		<h1>Achievements</h1>
 	</div>
 </body>
 
@@ -174,7 +173,7 @@ let playerBelt = document.getElementById("playerBelt");
 let gameOptions = document.getElementById("gameOptions");
 let catchEnabledButton = document.getElementById("catchEnabled");
 let soundEnabledButton = document.getElementById("soundEnabled");
-let achievementsDom = document.getElementById("achievementsArea");
+let achievementsAreaDom = document.getElementById("achievementsArea");
 
 
 let game = new PokeDaemonGame();
@@ -221,7 +220,11 @@ window.addEventListener("keyup", function(event) {
 window.addEventListener("keydown", function(event) {
 	if(event.key === " ") {
 		event.preventDefault();
-		game.attack();
+		game.attackNoBlock();
+	}
+	else if(event.key === "z") {
+		event.preventDefault();
+		game.attackNoBlock();
 	}
 });
 

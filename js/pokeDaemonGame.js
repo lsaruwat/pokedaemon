@@ -1,13 +1,8 @@
 class PokeDaemonGame{
-	playerPokemon = null;
-	enemyPokemon = null;
-	initPlayerLevel = null;
-	playerLevel = null;
-	enemyLevel = null;
-	p1 = null;
-	e1 = null;
+	player = null;
+	enemy = null;
 	goalPokemon = null;
-	gameGoal = "Get a pokemon to level 100!";
+	gameGoal = '';
 	pokemon = [];
 	cachedApiPokemon = [];
 	pokeBelt = [];
@@ -21,6 +16,7 @@ class PokeDaemonGame{
 	constructor(){
 		// Bound instance methods
     	this.attack = this.attack.bind(this);
+    	this.attackNoBlock = this.attackNoBlock.bind(this);
     	this.itemChange = this.itemChange.bind(this);
     	this.switchPokemon = this.switchPokemon.bind(this);
     	this.poach = this.poach.bind(this);
@@ -29,14 +25,44 @@ class PokeDaemonGame{
     	this.checkAutoCatch = this.checkAutoCatch.bind(this);
     	this.checkSound = this.checkSound.bind(this);
 
-		console.log("Game created!");
+		console.log("PokeDaemonGame created!");
 	}
 
 
 	attack(){
-		this.e1.currentHp -= this.p1.attack;
-		this.p1.currentHp -= this.e1.attack;
+		this.enemy.currentHp -= this.player.attack;
+		if(this.enemy.isDead()){
+			this.healBelt();
+			this.player.xp+=this.enemy.baseXp;
+			eImg.setAttribute("src", "img/fatality.gif");
+			if(this.autoCatch) this.catchPokemon(this.enemy);
+			this.rareAlerted = false;
+			this.getNewEnemy();
+			//self = this
+			// window.setTimeout(function(){self.getNewEnemy()},300);
+			this.player.levelUp();
+			this.player.heal(10);
+			return;
+		}
+		// player moves first so this will be skipped if enemy dies
+		this.player.currentHp -= this.enemy.attack;
+		if(this.player.isDead()){
+			pImg.setAttribute("src", "img/fatality.gif");
+			this.enemy.levelUp();
+			this.enemy.heal(10);
+			this.removePokemonFromBelt(this.player);
+			this.player = null;
+			let beltLength = Object.keys(this.pokeBelt); // this is so I don't forget that this is an object and not an associative array!!! there is no fucking length!!!!
+			if(beltLength)this.getFirstPokemonFromBelt();
+			if(this.player === null)this.gameOver();
+			return;
+		}
+		//nobody is dead, just refresh dom
 		this.refreshDom();
+	}
+
+	attackNoBlock(){
+		this.attack();
 	}
 
 	itemChange(){
@@ -44,21 +70,19 @@ class PokeDaemonGame{
 	}
 
 	switchPokemon(direction=null){
-		let nameArr = Object.keys(this.pokeBelt); // get the names in the belt as an array;
-		let currentIndex = nameArr.indexOf(this.p1.name);
-		let nextIndex = null;
-		if(direction === 'left') nextIndex = currentIndex === 0 ? nameArr.length-1 : currentIndex-1;
-		else nextIndex = currentIndex === nameArr.length-1 ? 0 : currentIndex+1;
-		let nextName = nameArr[nextIndex];
-		this.p1 = this.pokeBelt[nextName];
+		if(direction === 'left') this.getNextPokemonFromBelt();
+		else if(direction === 'right') this.getPreviousPokemonFromBelt();
+		else this.getFirstPokemonFromBelt();
+		this.player.levelUp(); // this is in just for cheating/debugging
 		this.refreshDom();
 	}
 
 	poach(){
 		pImg.setAttribute("src", "img/gunshot.gif");
-		eImg.setAttribute("src", "img/fatality.gif");
-		this.e1.currentHp = 0;
-		this.refreshDom(true);
+		window.setTimeout(function(){eImg.setAttribute("src", "img/fatality.gif");}, 300);
+		this.enemy.currentHp = 0;
+		self = this
+		window.setTimeout(function(){self.refreshDom(true);}, 800);
 	}
 
 	run(){
@@ -67,7 +91,7 @@ class PokeDaemonGame{
 	}
 
 	release(){
-		this.removePokemonFromBelt(this.p1);
+		this.removePokemonFromBelt(this.player);
 		this.getFirstPokemonFromBelt();
 		this.refreshDom();
 	}
@@ -78,6 +102,11 @@ class PokeDaemonGame{
 
 	checkSound(){
 		this.soundEnabled =  soundEnabledButton.checked ? true : false;
+	}
+
+	gameOver(){
+		window.alert("What a fuckennnn LOOOOOSER!");
+		this.initAll();
 	}
 
 
@@ -95,15 +124,16 @@ class PokeDaemonGame{
 
 	checkGameGoal(){
 		if(this.checkForWin()) {
+			window.alert("YOU WIN!!!!!!!!!!!!!!!!!!!!!");
 			this.setAchievements();
 			this.displayAchievements();
-			window.alert("YOU WIN!!!!!!!!!!!!!!!!!!!!!");
+			this.writeAchievements();
 			this.getGameGoal();
 		}
 	}
 
 	checkForWin(){
-		if(this.p1.name === this.goalPokemon.name && this.p1.level >= 125) return true;
+		if(this.player.name === this.goalPokemon.name && this.player.level >= 125) return true;
 		else return false
 	}
 
@@ -112,50 +142,49 @@ class PokeDaemonGame{
 	}
 
 	setAchievements(){
-		if(this.achievements !== null) this.achievements.push(this.goalPokemon);
-		else this.achievements = [this.goalPokemon];
+		let temp = this.goalPokemon;
+		if(this.achievements !== null){
+			this.achievements.push(temp);
+		}
+		else this.achievements = [temp];
+	}
+
+	writeAchievements(){
 		localStorage.setItem("pokedaemonAchievements", JSON.stringify(this.achievements));
 	}
 
 	displayAchievements(){
-		let oldImages = achievementsDom.getElementsByTagName('img');
-		if(oldImages.length>0){
-			for(let i in oldImages){
-				oldImages[i].remove();
-			}
-		}
+		let rawHtml = '<h1>Achievements</h1>';
 		for(let i in this.achievements){
-			let image = document.createElement('img');
-			image.setAttribute("style", "background-image: url('img/holographic.webp')");
-			image.setAttribute("src", this.achievements[i].image);
-			achievementsDom.appendChild(image);
-
+			rawHtml += "<img style='background-image: url("+ "img/holographic.webp);" + "' src='" + this.achievements[i].image + "'/>";
 		}
+		achievementsAreaDom.innerHTML = rawHtml;
 	}
 
 	getNewEnemy(pokeIndex=null){
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
 	  	this.enemyPokemon = this.pokemon[pokeIndex];
 
-	  	this.e1 = new Pokemon(this.enemyPokemon.slug.eng, this.getLevel(1,this.p1.level+20), 0);
-  		if(this.cachedApiPokemon[this.e1.name]){
-  			console.log("POKEMON " + this.e1.name +  " found in cache!");
-  			this.e1.buildFromRequest(this.cachedApiPokemon[this.e1.name]);
+	  	this.enemy = new Pokemon(this.enemyPokemon.slug.eng, this.getLevel(1,this.player.level+20), 0);
+  		if(this.cachedApiPokemon[this.enemy.name]){
+  			console.log("POKEMON " + this.enemy.name +  " found in cache!");
+  			this.enemy.buildFromRequest(this.cachedApiPokemon[this.enemy.name]);
 				this.refreshDom();
 				if(this.soundEnabled)enemy_audio.play();
   		}
   		else{
   			let self = this;
-			fetch(pokeApi + this.e1.name)
+			fetch(pokeApi + this.enemy.name)
 				.then((resp) => resp.json())
 				.then(function(data){
-					self.e1.buildFromRequest(data);
+					self.enemy.buildFromRequest(data);
 					self.refreshDom();
 					if(self.soundEnabled)enemy_audio.play();
-					if(self.cachedApiPokemon[self.e1.name] === undefined) self.cachedApiPokemon[self.e1.name] = data; 
+					if(self.cachedApiPokemon[self.enemy.name] === undefined) self.cachedApiPokemon[self.enemy.name] = data; 
 				})
 				.catch(function(error){
 				    console.log("API Error: " + error);
+				    self.getNewEnemy();
 				});
   		}
 	}
@@ -164,26 +193,27 @@ class PokeDaemonGame{
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
 	  	this.playerPokemon = this.pokemon[pokeIndex];
 
-	  	this.p1 = new Pokemon(this.playerPokemon.slug.eng, this.getLevel(10,50), 0);
-	  	this.pokeBelt[this.p1.name] = this.p1;
-	  	if(this.cachedApiPokemon[this.p1.name]){
-  			console.log("POKEMON " + this.p1.name +  " found in cache!");
-  			this.p1.buildFromRequest(this.cachedApiPokemon[this.p1.name]);
-				this.refreshDom();
-				if(this.soundEnabled)player_audio.play();
+	  	this.player = new Pokemon(this.playerPokemon.slug.eng, this.getLevel(10,50), 0);
+	  	this.pokeBelt[this.player.name] = this.player;
+	  	if(this.cachedApiPokemon[this.player.name]){
+  			console.log("POKEMON " + this.player.name +  " found in cache!");
+  			this.player.buildFromRequest(this.cachedApiPokemon[this.player.name]);
+			this.refreshDom();
+			if(this.soundEnabled)player_audio.play();
   		}
   		else{
 			let self = this;
-		  	fetch(pokeApi + this.p1.name)
+		  	fetch(pokeApi + this.player.name)
 				.then((resp) => resp.json())
 				.then(function(data){
-					self.p1.buildFromRequest(data);
+					self.player.buildFromRequest(data);
 					self.refreshDom();
 					if(self.soundEnabled)player_audio.play();
-					if(self.cachedApiPokemon[self.p1.name] === undefined) self.cachedApiPokemon[self.p1.name] = data;
+					if(self.cachedApiPokemon[self.player.name] === undefined) self.cachedApiPokemon[self.player.name] = data;
 				})
 				.catch(function(error){
 				    console.log("API Error: " + error);
+				    self.getNewPlayer();
 				});
 		}
 	}
@@ -214,29 +244,22 @@ class PokeDaemonGame{
 				})
 				.catch(function(error){
 				    console.log("API Error: " + error);
+				    self.getGoalPokemon();
 				});
   		}
 	}
 
-	getBallElement(id){
-		let ball = document.createElement('img');
-		ball.id = "ball-" + id;
-		ball.class="ball"
-		ball.src = "pokesprites/icons/ball/poke.png";
-		return ball;
-
-	}
-
 	catchPokemon(pokemon){
 		// TODO MATH ON FAIL OR SUCCESS
-		pokemon.currentHp = 50;
-		if(Object.keys(this.pokeBelt).length <= 6) this.addPokemonToBelt(pokemon);
+		pokemon.heal(10);
+		if(Object.keys(this.pokeBelt).length < 6) this.addPokemonToBelt(pokemon);
 	}
 
 	addPokemonToBelt(pokemon){
 		let index = Object.keys(this.pokeBelt).length+1;
 		this.pokeBelt[pokemon.name] = pokemon;
-		playerBelt.appendChild(this.getBallElement(index));
+		let ballHtml = "<img id='ball-" + index + "' class='ball' src='pokesprites/icons/ball/poke.png'/>";
+		playerBelt.innerHTML+=ballHtml;
 	}
 
 	removePokemonFromBelt(pokemon){
@@ -246,8 +269,23 @@ class PokeDaemonGame{
 
 	getFirstPokemonFromBelt(){
 		let nameArr = Object.keys(this.pokeBelt); // get the names in the belt as an array;
-		this.p1 = this.pokeBelt[nameArr[0]];
+		this.player = this.pokeBelt[nameArr[0]];
 		this.refreshDom();
+	}
+
+	getNextPokemonFromBelt(){
+		let nameArr = Object.keys(this.pokeBelt); // get the names in the belt as an array;
+		let currentIndex = nameArr.indexOf(this.player.name);
+		let nextIndex = currentIndex === 0 ? nameArr.length-1 : currentIndex-1;
+		let nextName = nameArr[nextIndex];
+		this.player = this.pokeBelt[nextName];
+	}
+	getPreviousPokemonFromBelt(){
+		let nameArr = Object.keys(this.pokeBelt); // get the names in the belt as an array;
+		let currentIndex = nameArr.indexOf(this.player.name);
+		let previousIndex = currentIndex === nameArr.length-1 ? 0 : currentIndex+1;
+		let previousName = nameArr[previousIndex];
+		this.player = this.pokeBelt[previousName];
 	}
 
 	healBelt(){
@@ -260,60 +298,51 @@ class PokeDaemonGame{
 	refreshDom(poach=false){
 		if(this.goalPokemon){
 			this.checkGameGoal();
-			if(this.e1.name === this.goalPokemon.name) {
+			if(this.enemy.name === this.goalPokemon.name) {
 				eImg.setAttribute("style", "background-image: url('img/holographic.webp')");
-				if(!this.rareAlerted) {
+				if(!this.rareAlerted){
 						window.alert("FOUND RARE POKEMON!!!!!!");
 						this.rareAlerted = true;
-					}
+				}
 			}
 			else eImg.setAttribute("style", "border: none;");
-			if(this.p1.name === this.goalPokemon.name) pImg.setAttribute("style", "background-image: url('img/holographic.webp')");
+			if(this.player.name === this.goalPokemon.name) pImg.setAttribute("style", "background-image: url('img/holographic.webp')");
 			else pImg.setAttribute("style", "border: none;");
 		}
-		pName.innerHTML = this.p1.name;
-		pLevel.innerHTML = "l:" + this.p1.level;
-		pHealth.innerHTML = "h/p " + this.p1.currentHp + "/" + this.p1.hp;
-		pHealthBar.setAttribute("value", this.p1.currentHp);
-		pHealthBar.setAttribute("max", this.p1.hp);
+		pName.innerHTML = this.player.name;
+		pLevel.innerHTML = "l:" + this.player.level;
+		pHealth.innerHTML = "h/p " + this.player.currentHp + "/" + this.player.hp;
+		pHealthBar.setAttribute("value", this.player.currentHp);
+		pHealthBar.setAttribute("max", this.player.hp);
 		pImg.setAttribute("width", width);
 		pImg.setAttribute("height", height);
-		pImg.setAttribute("src", this.p1.backImage);
-		player_audio.setAttribute("src", this.p1.cries);
-		eName.innerHTML = this.e1.name;
-		eLevel.innerHTML = "l:" + this.e1.level;
-		eHealthBar.setAttribute("value", this.e1.currentHp);
-		eHealthBar.setAttribute("max", this.e1.hp);
+		pImg.setAttribute("src", this.player.backImage ? this.player.backImage : this.player.image);
+		player_audio.setAttribute("src", this.player.cries);
+		eName.innerHTML = this.enemy.name;
+		eLevel.innerHTML = "l:" + this.enemy.level;
+		eHealthBar.setAttribute("value", this.enemy.currentHp);
+		eHealthBar.setAttribute("max", this.enemy.hp);
 		eImg.setAttribute("width", width);
 		eImg.setAttribute("height", height);
-		eImg.setAttribute("src", this.e1.image);
-		enemy_audio.setAttribute("src", this.e1.cries);
-
-		if(this.e1.isDead()){
-			this.healBelt();
-			this.p1.xp+=this.e1.xp;
-			eImg.setAttribute("src", "img/fatality.gif");
-			if(this.autoCatch && !poach) this.catchPokemon(this.e1);
-			this.getNewEnemy();
-			this.p1.calculateStats();
-		}
-		else if(this.p1.isDead()){
-			pImg.setAttribute("src", "img/fatality.gif");
-			this.e1.setCurrentHp(this.e1.currentHp*1.1);
-			this.e1.xp+=this.p1.xp;
-			this.e1.calculateStats();
-			this.removePokemonFromBelt(this.p1);
-			this.getFirstPokemonFromBelt();
-			if(this.p1 === undefined)this.getNewPlayer();
-		}
-
+		eImg.setAttribute("src", this.enemy.image);
+		enemy_audio.setAttribute("src", this.enemy.cries);
 		if(this.achievements) this.displayAchievements;
 
 	}
 
-	refreshPokemon(){
+	initPokemon(){
 		this.getNewPlayer();
 		this.getNewEnemy(this.staticRareIndex);
+	}
+
+	restartGame(){
+		this.pokeBelt = [];
+		this.checkAutoCatch();
+	  	this.checkSound();
+	  	this.getGameGoal();
+	  	this.getAchievements();
+	  	this.displayAchievements();
+	  	this.initPokemon();
 	}
 
 	initAll(){
@@ -323,11 +352,13 @@ class PokeDaemonGame{
 	  		for(let i in data){
 	  			temp.push(data[i])
 	  		}
+	  		self.checkAutoCatch();
+	  		self.checkSound();
 	  		self.pokemon = temp;
 	  		self.getGameGoal();
 	  		self.getAchievements();
 	  		self.displayAchievements();
-	  		self.refreshPokemon();
+	  		self.initPokemon();
 	  	});
 	}
 }

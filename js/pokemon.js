@@ -5,7 +5,7 @@ class Pokemon{
 	data;
 	id=0;
 	level=1;
-	statModifier=0.0;
+	statModifier=0.5;
 	xp=0;
 	weight=0;
 	height=0;
@@ -39,11 +39,12 @@ class Pokemon{
 		this.name = name;
 		this.level = level;
 		this.xp = xp;
-		this.statModifier = this.level * 0.1;
+		this.statModifier = this.level * 0.5;
 		this.url = this.apiUrl + "pokemon/" + name;
 	}
 
 	setCurrentHp(hp){
+		hp = Math.round(hp);
 		this.currentHp = (hp > this.hp ? this.hp : hp);
 	}
 
@@ -67,7 +68,9 @@ class Pokemon{
 		for(let i in data.types){
 			this.types.push(data.types[i].type);
 		}
-
+		this.statModifier = this.level * 0.5;
+		this.hp = Math.round(this.baseHp*this.statModifier);
+		this.currentHp = this.hp;
 		this.calculateStats();
 	}
 
@@ -87,8 +90,9 @@ class Pokemon{
 	}
 
 	heal(healAmountPercent){
-		let healthPercent = this.hp * (.01*healAmountPercent)
+		let healthPercent = this.hp * (.01*healAmountPercent);
 		this.currentHp+= healthPercent;
+		this.currentHp = Math.round(this.currentHp);
 
 		if(this.currentHp>=this.hp) this.currentHp = this.hp;
 		if(this.currentHp<=0) this.currentHp=1;
@@ -96,13 +100,12 @@ class Pokemon{
 
 	calculateStats(){
 		this.statModifier = this.level * 0.5;
-		this.hp = this.baseHp*this.level;
+		this.hp = Math.round(this.baseHp*this.statModifier);
 		this.attack = Math.round(this.baseAttack*this.statModifier);
 		this.defense = Math.round(this.baseDefense*this.statModifier);
 		this.specialAttack = Math.round(this.baseSpecialAttack*this.statModifier);
 		this.specialDefense = Math.round(this.baseSpecialDefense*this.statModifier);
 		this.speed = Math.round(this.baseSpeed*this.statModifier);
-		this.xp = Math.round(this.baseXp*this.statModifier);
-		this.currentHp = this.hp;
+		this.baseXp = Math.round(this.baseXp*this.statModifier);
 	}
 }

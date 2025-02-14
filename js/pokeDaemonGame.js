@@ -161,6 +161,13 @@ class PokeDaemonGame{
 		achievementsAreaDom.innerHTML = rawHtml;
 	}
 
+	dumpCache(){
+		let nameArr = Object.keys(this.cachedApiPokemon);
+		for(let i in nameArr){
+			secretAreaDom.innerHTML+= JSON.stringify(this.cachedApiPokemon[nameArr[i]]);
+		}
+	}
+
 	getNewEnemy(pokeIndex=null){
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
 	  	this.enemyPokemon = this.pokemon[pokeIndex];

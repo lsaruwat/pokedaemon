@@ -168,11 +168,11 @@ class PokeDaemonGame{
 		}
 	}
 
-	getNewEnemy(pokeIndex=null){
+	async getNewEnemy(pokeIndex=null){
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
-	  	this.enemyPokemon = this.pokemon[pokeIndex];
+	  	let enemyPokemon = this.pokemon[pokeIndex];
 
-	  	this.enemy = new Pokemon(this.enemyPokemon.slug.eng, this.getLevel(1,this.player.level+20), 0);
+	  	this.enemy = new Pokemon(enemyPokemon.name, enemyPokemon.url, this.getLevel(1,this.player.level+20), 0);
   		if(this.cachedApiPokemon[this.enemy.name]){
   			console.log("POKEMON " + this.enemy.name +  " found in cache!");
   			this.enemy.buildFromRequest(this.cachedApiPokemon[this.enemy.name]);
@@ -180,27 +180,27 @@ class PokeDaemonGame{
 				if(this.soundEnabled)enemy_audio.play();
   		}
   		else{
-  			let self = this;
-			fetch(pokeApi + this.enemy.name)
-				.then((resp) => resp.json())
-				.then(function(data){
-					self.enemy.buildFromRequest(data);
-					self.refreshDom();
-					if(self.soundEnabled)enemy_audio.play();
-					if(self.cachedApiPokemon[self.enemy.name] === undefined) self.cachedApiPokemon[self.enemy.name] = data; 
-				})
-				.catch(function(error){
-				    console.log("API Error: " + error);
-				    self.getNewEnemy();
-				});
+			let response = await fetch(this.enemy.url);
+			if(response.status === 200){
+				let data = await response.json();
+				this.enemy.buildFromRequest(data);
+				this.refreshDom();
+				if(this.soundEnabled)enemy_audio.play();
+				if(this.cachedApiPokemon[this.enemy.name] === undefined) this.cachedApiPokemon[this.enemy.name] = data; 
+			}
+			else{
+				console.log("API Error: " + response.status);
+				console.log(response);
+				this.getNewEnemy();
+			}
   		}
 	}
 
 	getNewPlayer(pokeIndex=null){
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
-	  	this.playerPokemon = this.pokemon[pokeIndex];
+	  	let playerPokemon = this.pokemon[pokeIndex];
 
-	  	this.player = new Pokemon(this.playerPokemon.slug.eng, this.getLevel(10,50), 0);
+	  	this.player = new Pokemon(playerPokemon.name, playerPokemon.url, this.getLevel(10,50), 0);
 	  	this.pokeBelt[this.player.name] = this.player;
 	  	if(this.cachedApiPokemon[this.player.name]){
   			console.log("POKEMON " + this.player.name +  " found in cache!");
@@ -210,7 +210,7 @@ class PokeDaemonGame{
   		}
   		else{
 			let self = this;
-		  	fetch(pokeApi + this.player.name)
+		  	fetch(this.player.url)
 				.then((resp) => resp.json())
 				.then(function(data){
 					self.player.buildFromRequest(data);
@@ -230,7 +230,7 @@ class PokeDaemonGame{
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
 	  	let goalPokemon = this.pokemon[pokeIndex];
 
-	  	this.goalPokemon = new Pokemon(goalPokemon.slug.eng, 50, 100);
+	  	this.goalPokemon = new Pokemon(goalPokemon.name, goalPokemon.url, 50, 100);
   		if(this.cachedApiPokemon[this.goalPokemon.name]){
   			console.log("POKEMON " + this.goalPokemon.name +  " found in cache!");
   			this.goalPokemon.buildFromRequest(this.cachedApiPokemon[this.goalPokemon.name]);
@@ -240,7 +240,7 @@ class PokeDaemonGame{
   		}
   		else{
   			let self = this;
-			fetch(pokeApi + this.goalPokemon.name)
+			fetch(this.goalPokemon.url)
 				.then((resp) => resp.json())
 				.then(function(data){
 					self.goalPokemon.buildFromRequest(data);
@@ -352,20 +352,24 @@ class PokeDaemonGame{
 	  	this.initPokemon();
 	}
 
-	initAll(){
-		let self = this;
-		$.get(host + "/pokedaemon/pokesprites/data/pokemon.json", function(data){
-			let temp = [];
-	  		for(let i in data){
-	  			temp.push(data[i])
-	  		}
-	  		self.checkAutoCatch();
-	  		self.checkSound();
-	  		self.pokemon = temp;
-	  		self.getGameGoal();
-	  		self.getAchievements();
-	  		self.displayAchievements();
-	  		self.initPokemon();
-	  	});
+	async initAll(){
+		let response = await fetch(host + "/pokedaemon/pokesprites/data/pokemon.json");
+		if(response.status === 200){
+			let data = await response.json();
+			data = data.results;
+			for(let i in data){
+				this.pokemon.push(data[i]);
+			}
+	  		this.checkAutoCatch();
+	  		this.checkSound();
+	  		this.getGameGoal();
+	  		this.getAchievements();
+	  		this.displayAchievements();
+	  		this.initPokemon();
+		}
+		else{
+			console.log('API Error: ' + response.status);
+			console.log(response);
+		}
 	}
 }

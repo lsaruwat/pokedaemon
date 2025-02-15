@@ -1,6 +1,7 @@
 class Pokemon{
 
 	apiUrl = 'https://pokeapi.co/api/v2/';
+	url = null;
 	name;
 	data;
 	id=0;
@@ -35,8 +36,9 @@ class Pokemon{
 
 
 	
-	constructor(name, level=1, xp=0) {
+	constructor(name, url, level=1, xp=0) {
 		this.name = name;
+		this.url = url;
 		this.level = level;
 		this.xp = xp;
 		this.statModifier = this.level * 0.5;
@@ -59,9 +61,13 @@ class Pokemon{
 		this.baseSpecialAttack = data.stats[3].base_stat;
 		this.baseSpecialDefense = data.stats[4].base_stat;
 		this.baseSpeed = data.stats[5].base_stat;
-		this.image = data.sprites.front_default;
+		// this.image = data.sprites.front_default ? data.sprites.front_default : data.sprites.other.showdown.front_default;
+		// this.backImage = data.sprites.back_default ? data.sprites.back_default : data.sprites.other.showdown.back_default;
+		this.image =  data.sprites.other.showdown.front_default ? data.sprites.other.showdown.front_default : data.sprites.front_default;
+		this.backImage = data.sprites.other.showdown.back_default ? data.sprites.other.showdown.back_default : data.sprites.back_default;
+		//TODO
+		// this.setValidImages(data.sprites);
 		this.cries = data.cries.latest;
-		this.backImage = data.sprites.back_default;
 		for(let i in data.moves){
 			this.moves.push(data.moves[i].move);
 		}
@@ -72,6 +78,10 @@ class Pokemon{
 		this.hp = Math.round(this.baseHp*this.statModifier);
 		this.currentHp = this.hp;
 		this.calculateStats();
+	}
+
+	setValidImages(sprites){
+		//TODO set valid images
 	}
 
 	isDead(){

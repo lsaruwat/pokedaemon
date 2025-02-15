@@ -41,17 +41,28 @@ img.pokemon{
 
 
 @media (max-width: 1200px) {
-  #commandArea {
-  	position: absolute;
-  	bottom: 30px;
-  	z-index: 10;
-  	width: 100%;
-  	margin-left: 0px;
-  	margin-right: 0px;
-  	padding-left: 0px;
-  	padding-right: 0px;
-  }
-  #commandArea input.btn{
-  	font-size: 60px;
-  }
+	#commandRow.arenaContained.row{
+		width: 100%;
+		max-width: 100%;
+		position: absolute;
+		bottom: 30px;
+		z-index: 10;
+		width: 100%;
+	}
+
+	#commandArea .row.mb-2{
+		display: inline-block;
+		width: 100%;
+		margin: 0px auto;
+		text-align: center;
+	}
+	#commandArea .row.mb-2 .col-2{
+		float: none;
+		display: inline-block;
+		width: 25%;
+
+	}
+	#commandArea input.btn{
+		font-size: 60px;
+	}
 }

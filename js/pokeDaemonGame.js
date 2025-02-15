@@ -28,6 +28,33 @@ class PokeDaemonGame{
 		console.log("PokeDaemonGame created!");
 	}
 
+	async fetchIt(url){
+		try{
+			let response = await fetch(url);
+			if(response.status === 200){
+				return await response.json();
+			}
+			else{
+				console.log("API Error: " + response.status);
+				console.log(response);
+			}
+		}
+		catch(e){
+			console.log(e);
+		}
+		return false;
+	}
+
+	async fetchPokemon(url, error_callback){
+		let response = await this.fetchIt(url);
+		if(response){
+			return response;
+		}
+		else{
+			error_callback();
+		}
+	}
+
 
 	attack(){
 		this.enemy.currentHp -= this.player.attack;
@@ -175,57 +202,36 @@ class PokeDaemonGame{
 	  	this.enemy = new Pokemon(enemyPokemon.name, enemyPokemon.url, this.getLevel(1,this.player.level+20), 0);
   		if(this.cachedApiPokemon[this.enemy.name]){
   			console.log("POKEMON " + this.enemy.name +  " found in cache!");
-  			this.enemy.buildFromRequest(this.cachedApiPokemon[this.enemy.name]);
-				this.refreshDom();
-				if(this.soundEnabled)enemy_audio.play();
+  			enemyPokemon = this.cachedApiPokemon[this.enemy.name];
   		}
   		else{
-			let response = await fetch(this.enemy.url);
-			if(response.status === 200){
-				let data = await response.json();
-				this.enemy.buildFromRequest(data);
-				this.refreshDom();
-				if(this.soundEnabled)enemy_audio.play();
-				if(this.cachedApiPokemon[this.enemy.name] === undefined) this.cachedApiPokemon[this.enemy.name] = data; 
-			}
-			else{
-				console.log("API Error: " + response.status);
-				console.log(response);
-				this.getNewEnemy();
-			}
+			enemyPokemon = await this.fetchPokemon(this.enemy.url, this.getNewEnemy);
   		}
+  		this.enemy.buildFromRequest(enemyPokemon);
+		if(this.cachedApiPokemon[this.enemy.name] === undefined) this.cachedApiPokemon[this.enemy.name] = enemyPokemon;
+		this.refreshDom();
+		if(this.soundEnabled)enemy_audio.play();
 	}
 
-	getNewPlayer(pokeIndex=null){
+	async getNewPlayer(pokeIndex=null){
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
 	  	let playerPokemon = this.pokemon[pokeIndex];
 
-	  	this.player = new Pokemon(playerPokemon.name, playerPokemon.url, this.getLevel(10,50), 0);
-	  	this.pokeBelt[this.player.name] = this.player;
-	  	if(this.cachedApiPokemon[this.player.name]){
+	  	this.player = new Pokemon(playerPokemon.name, playerPokemon.url, this.getLevel(10,50), 50);
+  		if(this.cachedApiPokemon[this.player.name]){
   			console.log("POKEMON " + this.player.name +  " found in cache!");
-  			this.player.buildFromRequest(this.cachedApiPokemon[this.player.name]);
-			this.refreshDom();
-			if(this.soundEnabled)player_audio.play();
+  			playerPokemon = this.cachedApiPokemon[this.player.name];
   		}
   		else{
-			let self = this;
-		  	fetch(this.player.url)
-				.then((resp) => resp.json())
-				.then(function(data){
-					self.player.buildFromRequest(data);
-					self.refreshDom();
-					if(self.soundEnabled)player_audio.play();
-					if(self.cachedApiPokemon[self.player.name] === undefined) self.cachedApiPokemon[self.player.name] = data;
-				})
-				.catch(function(error){
-				    console.log("API Error: " + error);
-				    self.getNewPlayer();
-				});
-		}
+			playerPokemon = await this.fetchPokemon(this.player.url, this.getNewPlayer);
+  		}
+  		this.player.buildFromRequest(playerPokemon);
+		if(this.cachedApiPokemon[this.player.name] === undefined) this.cachedApiPokemon[this.player.name] = playerPokemon;
+		this.refreshDom();
+		if(this.soundEnabled)player_audio.play();
 	}
 
-	getGoalPokemon(pokeIndex=null){
+	async getGoalPokemon(pokeIndex=null){
 		if(this.staticRareIndex) pokeIndex = this.staticRareIndex;
 		if(!pokeIndex) pokeIndex = Math.floor(Math.random() * Math.floor(this.pokemon.length));
 	  	let goalPokemon = this.pokemon[pokeIndex];
@@ -233,27 +239,19 @@ class PokeDaemonGame{
 	  	this.goalPokemon = new Pokemon(goalPokemon.name, goalPokemon.url, 50, 100);
   		if(this.cachedApiPokemon[this.goalPokemon.name]){
   			console.log("POKEMON " + this.goalPokemon.name +  " found in cache!");
-  			this.goalPokemon.buildFromRequest(this.cachedApiPokemon[this.goalPokemon.name]);
   			gameGoalImgDom.setAttribute('src', this.goalPokemon.image);
 			this.gameGoal = "Get a " + this.goalPokemon.name + " to level 125!";
 			gameGoalDom.innerHTML = this.gameGoal;
   		}
   		else{
-  			let self = this;
-			fetch(this.goalPokemon.url)
-				.then((resp) => resp.json())
-				.then(function(data){
-					self.goalPokemon.buildFromRequest(data);
-					gameGoalImgDom.setAttribute('src', self.goalPokemon.image);
-					self.gameGoal = "Get a " + self.goalPokemon.name + " to level 125!";
-					gameGoalDom.innerHTML = self.gameGoal;
-					if(self.cachedApiPokemon[self.goalPokemon.name] === undefined) self.cachedApiPokemon[self.goalPokemon.name] = data; 
-				})
-				.catch(function(error){
-				    console.log("API Error: " + error);
-				    self.getGoalPokemon();
-				});
+			goalPokemon = await this.fetchPokemon(this.goalPokemon.url, this.getGoalPokemon);
   		}
+  		this.goalPokemon.buildFromRequest(goalPokemon);
+		if(this.cachedApiPokemon[this.goalPokemon.name] === undefined) this.cachedApiPokemon[this.goalPokemon.name] = goalPokemon;
+		gameGoalImgDom.setAttribute('src', this.goalPokemon.image);
+		this.gameGoal = "Get a " + this.goalPokemon.name + " to level 125!";
+		gameGoalDom.innerHTML = this.gameGoal;
+		this.refreshDom();
 	}
 
 	catchPokemon(pokemon){

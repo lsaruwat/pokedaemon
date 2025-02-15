@@ -65,6 +65,8 @@ class Pokemon{
 		// this.backImage = data.sprites.back_default ? data.sprites.back_default : data.sprites.other.showdown.back_default;
 		this.image =  data.sprites.other.showdown.front_default ? data.sprites.other.showdown.front_default : data.sprites.front_default;
 		this.backImage = data.sprites.other.showdown.back_default ? data.sprites.other.showdown.back_default : data.sprites.back_default;
+		//TODO
+		// this.setValidImages(data.sprites);
 		this.cries = data.cries.latest;
 		for(let i in data.moves){
 			this.moves.push(data.moves[i].move);
@@ -76,6 +78,10 @@ class Pokemon{
 		this.hp = Math.round(this.baseHp*this.statModifier);
 		this.currentHp = this.hp;
 		this.calculateStats();
+	}
+
+	setValidImages(sprites){
+		//TODO set valid images
 	}
 
 	isDead(){

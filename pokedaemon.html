@@ -13,7 +13,7 @@
 			</div>
 		</div>
 		<div id="battlefield" class="row arenaContained">
-			<div id="enemyArea" class="row mt-2 fighterArea">
+			<div id="enemyArea" class="row mt-4 fighterArea">
 				<div class="col">
 					<div id="enemyName" class="name"></div>
 					<div id="enemyLevel" class="level"></div>
@@ -25,7 +25,7 @@
 				</div>
 			</div>
 
-			<div id="playerArea" class="row fighterArea">	
+			<div id="playerArea" class="row mb-4 fighterArea">	
 				<div class="col">
 					<img id="playerImage" class="pokemon" src="pokesprites/icons/ball/poke.png"/>
 					<audio id="player_audio" src=""></audio>
@@ -41,33 +41,26 @@
 		</div>
 		<div class="row arenaContained">
 			<div id="commandArea">	
-				<div class="left">
-					<div id="battleText"></div>
+				<div class="row mb-2">
+					<div class="col-2">
+				  		<div id="playerAttack" class="option"><input type="button" class="btn btn-success" value="Attack"/></div>
+					</div>
+					<div class="col-2">
+						<div id="playerPoach" class="option"><input type="button" class="btn btn-danger" value="Poach"/></div>
+					</div>
+					<div class="col-2">
+				  		<div id="playerItem" class="option"><input type="button" class="btn btn-secondary" value="Item"/></div>
+					</div>
 				</div>
-				<div class="right">
-					<div class="container">
-						<div class="row mb-2">
-							<div class="col-2">
-						  		<div id="playerAttack" class="option"><input type="button" class="btn btn-success" value="Attack"/></div>
-							</div>
-							<div class="col-2">
-								<div id="playerPoach" class="option"><input type="button" class="btn btn-danger" value="Poach"/></div>
-							</div>
-							<div class="col-2">
-						  		<div id="playerItem" class="option"><input type="button" class="btn btn-secondary" value="Item"/></div>
-							</div>
-						</div>
-						<div class="row mb-2">
-							<div class="col-2">
-								<div id="switchPokemon" class="option"><input type="button" class="btn btn-info" value="Switch"/></div>
-							</div>
-							<div class="col-2">
-						  		<div id="playerRun" class="option"><input type="button" class="btn btn-info" value="Run"/></div>
-							</div>
-							<div class="col-2">
-								<div id="releasePokemon" class="option"><input type="button" class="btn btn-warning" value="Release"/></div>
-							</div>
-						</div>
+				<div class="row mb-2">
+					<div class="col-2">
+						<div id="switchPokemon" class="option"><input type="button" class="btn btn-info" value="Switch"/></div>
+					</div>
+					<div class="col-2">
+				  		<div id="playerRun" class="option"><input type="button" class="btn btn-info" value="Run"/></div>
+					</div>
+					<div class="col-2">
+						<div id="releasePokemon" class="option"><input type="button" class="btn btn-warning" value="Release"/></div>
 					</div>
 				</div>
 			</div>

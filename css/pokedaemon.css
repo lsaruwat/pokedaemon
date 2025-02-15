@@ -1,0 +1,40 @@
+.arenaContained{
+	max-width: 800px;
+	margin: 0px auto;
+	margin-bottom: 10px;
+}
+
+.overflowable{
+	overflow: scroll;
+}
+
+#goalArea{
+	margin-bottom: 10px;
+}
+
+#battlefield {
+	border: 1px solid black;
+	max-width: 800px;
+	text-transform: uppercase;
+}
+
+.name{
+	font-size: 24px;
+}
+
+img.pokemon{
+	min-width: 35%;
+	height: auto;
+}
+
+
+/*#commandArea{
+	display: inline-block;
+	margin: 0px auto;
+}*/
+
+#achievementsArea img{
+	margin-right: 5px;
+	margin-bottom: 5px;
+	border: solid 2px black;
+}

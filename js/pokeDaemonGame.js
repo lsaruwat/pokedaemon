@@ -132,7 +132,7 @@ class PokeDaemonGame{
 	}
 
 	gameOver(){
-		window.alert("What a fuckennnn LOOOOOSER!");
+		window.alert("(Boston Accent) What a fuckennnn LOOOOOSER!");
 		this.initAll();
 	}
 
@@ -319,16 +319,16 @@ class PokeDaemonGame{
 		pHealth.innerHTML = "h/p " + this.player.currentHp + "/" + this.player.hp;
 		pHealthBar.setAttribute("value", this.player.currentHp);
 		pHealthBar.setAttribute("max", this.player.hp);
-		pImg.setAttribute("width", width);
-		pImg.setAttribute("height", height);
+		// pImg.setAttribute("width", width);
+		// pImg.setAttribute("height", height);
 		pImg.setAttribute("src", this.player.backImage ? this.player.backImage : this.player.image);
 		player_audio.setAttribute("src", this.player.cries);
 		eName.innerHTML = this.enemy.name;
 		eLevel.innerHTML = "l:" + this.enemy.level;
 		eHealthBar.setAttribute("value", this.enemy.currentHp);
 		eHealthBar.setAttribute("max", this.enemy.hp);
-		eImg.setAttribute("width", width);
-		eImg.setAttribute("height", height);
+		// eImg.setAttribute("width", width);
+		// eImg.setAttribute("height", height);
 		eImg.setAttribute("src", this.enemy.image);
 		enemy_audio.setAttribute("src", this.enemy.cries);
 		if(this.achievements) this.displayAchievements;

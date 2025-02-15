@@ -105,8 +105,8 @@ class PokeDaemonGame{
 	}
 
 	poach(){
-		pImg.setAttribute("src", "img/gunshot.gif");
-		window.setTimeout(function(){eImg.setAttribute("src", "img/fatality.gif");}, 300);
+		pImg.setAttribute("src", "img/gunshot-2.gif");
+		window.setTimeout(function(){eImg.setAttribute("style", "overflow: visible; background-position: bottom 20px right 15px; background-size: 180%; background-image: url('img/bloodSplatter-3.gif');");}, 300);
 		this.enemy.currentHp = 0;
 		self = this
 		window.setTimeout(function(){self.refreshDom(true);}, 800);

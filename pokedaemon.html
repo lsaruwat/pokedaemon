@@ -68,7 +68,6 @@
 		<div class="row arenaContained">
 			<div id="controlArea">
 				<div id="playerBelt">
-					<img id="ball-0" class="ball" src="pokesprites/icons/ball/poke.png"/>
 				</div>
 				<div id="gameOptions">
 					<label for="catchEnabled">Auto Catch</label>
@@ -173,11 +172,11 @@ window.addEventListener("keyup", function(event) {
 window.addEventListener("keydown", function(event) {
 	if(event.key === " ") {
 		event.preventDefault();
-		game.attackNoBlock();
+		game.attack();
 	}
 	else if(event.key === "z") {
 		event.preventDefault();
-		game.attackNoBlock();
+		game.attack();
 	}
 	//dummy listeners to prevent default
 	else if(event.key === 'ArrowUp'){

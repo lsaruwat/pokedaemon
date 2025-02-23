@@ -16,7 +16,6 @@ class PokeDaemonGame{
 	constructor(){
 		// Bound instance methods
     	this.attack = this.attack.bind(this);
-    	this.attackNoBlock = this.attackNoBlock.bind(this);
     	this.itemChange = this.itemChange.bind(this);
     	this.switchPokemon = this.switchPokemon.bind(this);
     	this.poach = this.poach.bind(this);
@@ -56,7 +55,7 @@ class PokeDaemonGame{
 	}
 
 
-	attack(){
+	async attack(){
 		this.enemy.currentHp -= this.player.attack;
 		if(this.enemy.isDead()){
 			this.healBelt();
@@ -64,7 +63,7 @@ class PokeDaemonGame{
 			eImg.setAttribute("src", "img/fatality.gif");
 			if(this.autoCatch) this.catchPokemon(this.enemy);
 			this.rareAlerted = false;
-			this.getNewEnemy();
+			await this.getNewEnemy();
 			//self = this
 			// window.setTimeout(function(){self.getNewEnemy()},300);
 			this.player.levelUp();
@@ -88,17 +87,13 @@ class PokeDaemonGame{
 		this.refreshDom();
 	}
 
-	attackNoBlock(){
-		this.attack();
-	}
-
 	itemChange(){
 		//TODO
 	}
 
 	switchPokemon(direction=null){
-		if(direction === 'left') this.getNextPokemonFromBelt();
-		else if(direction === 'right') this.getPreviousPokemonFromBelt();
+		if(direction === 'left') this.getPreviousPokemonFromBelt();
+		else if(direction === 'right') this.getNextPokemonFromBelt();
 		else this.getFirstPokemonFromBelt();
 		this.player.levelUp(); // this is in just for cheating/debugging
 		this.refreshDom();
@@ -112,8 +107,8 @@ class PokeDaemonGame{
 		window.setTimeout(function(){self.refreshDom(true);}, 800);
 	}
 
-	run(){
-		this.getNewEnemy();
+	async run(){
+		await this.getNewEnemy();
 		this.refreshDom();
 	}
 
@@ -144,9 +139,9 @@ class PokeDaemonGame{
     	return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 
-	getGameGoal(pokeIndex=null){
+	async getGameGoal(pokeIndex=null){
 		this.rareAlerted = false;
-		this.getGoalPokemon(pokeIndex);
+		await this.getGoalPokemon(pokeIndex);
 	}
 
 	checkGameGoal(){
@@ -227,6 +222,7 @@ class PokeDaemonGame{
   		}
   		this.player.buildFromRequest(playerPokemon);
 		if(this.cachedApiPokemon[this.player.name] === undefined) this.cachedApiPokemon[this.player.name] = playerPokemon;
+		this.addPokemonToBelt(this.player);
 		this.refreshDom();
 		if(this.soundEnabled)player_audio.play();
 	}
@@ -251,7 +247,6 @@ class PokeDaemonGame{
 		gameGoalImgDom.setAttribute('src', this.goalPokemon.image);
 		this.gameGoal = "Get a " + this.goalPokemon.name + " to level 125!";
 		gameGoalDom.innerHTML = this.gameGoal;
-		this.refreshDom();
 	}
 
 	catchPokemon(pokemon){
@@ -281,14 +276,14 @@ class PokeDaemonGame{
 	getNextPokemonFromBelt(){
 		let nameArr = Object.keys(this.pokeBelt); // get the names in the belt as an array;
 		let currentIndex = nameArr.indexOf(this.player.name);
-		let nextIndex = currentIndex === 0 ? nameArr.length-1 : currentIndex-1;
+		let nextIndex = currentIndex === nameArr.length-1 ? 0 : currentIndex+1;
 		let nextName = nameArr[nextIndex];
 		this.player = this.pokeBelt[nextName];
 	}
 	getPreviousPokemonFromBelt(){
 		let nameArr = Object.keys(this.pokeBelt); // get the names in the belt as an array;
 		let currentIndex = nameArr.indexOf(this.player.name);
-		let previousIndex = currentIndex === nameArr.length-1 ? 0 : currentIndex+1;
+		let previousIndex = currentIndex === 0 ? nameArr.length-1 : currentIndex-1;
 		let previousName = nameArr[previousIndex];
 		this.player = this.pokeBelt[previousName];
 	}
@@ -303,7 +298,7 @@ class PokeDaemonGame{
 	refreshDom(poach=false){
 		if(this.goalPokemon){
 			this.checkGameGoal();
-			if(this.enemy.name === this.goalPokemon.name) {
+			if(this.enemy && this.enemy.name === this.goalPokemon.name){
 				eImg.setAttribute("style", "background-image: url('img/holographic.webp')");
 				if(!this.rareAlerted){
 						window.alert("FOUND RARE POKEMON!!!!!!");
@@ -314,40 +309,40 @@ class PokeDaemonGame{
 			if(this.player.name === this.goalPokemon.name) pImg.setAttribute("style", "background-image: url('img/holographic.webp')");
 			else pImg.setAttribute("style", "border: none;");
 		}
-		pName.innerHTML = this.player.name;
-		pLevel.innerHTML = "l:" + this.player.level;
-		pHealth.innerHTML = "h/p " + this.player.currentHp + "/" + this.player.hp;
-		pHealthBar.setAttribute("value", this.player.currentHp);
-		pHealthBar.setAttribute("max", this.player.hp);
-		// pImg.setAttribute("width", width);
-		// pImg.setAttribute("height", height);
-		pImg.setAttribute("src", this.player.backImage ? this.player.backImage : this.player.image);
-		player_audio.setAttribute("src", this.player.cries);
-		eName.innerHTML = this.enemy.name;
-		eLevel.innerHTML = "l:" + this.enemy.level;
-		eHealthBar.setAttribute("value", this.enemy.currentHp);
-		eHealthBar.setAttribute("max", this.enemy.hp);
-		// eImg.setAttribute("width", width);
-		// eImg.setAttribute("height", height);
-		eImg.setAttribute("src", this.enemy.image);
-		enemy_audio.setAttribute("src", this.enemy.cries);
+		if(this.player){
+			pName.innerHTML = this.player.name;
+			pLevel.innerHTML = "l:" + this.player.level;
+			pHealth.innerHTML = "h/p " + this.player.currentHp + "/" + this.player.hp;
+			pHealthBar.setAttribute("value", this.player.currentHp);
+			pHealthBar.setAttribute("max", this.player.hp);
+			pImg.setAttribute("src", this.player.backImage ? this.player.backImage : this.player.image);
+			player_audio.setAttribute("src", this.player.cries);
+		}
+		if(this.enemy){
+			eName.innerHTML = this.enemy.name;
+			eLevel.innerHTML = "l:" + this.enemy.level;
+			eHealthBar.setAttribute("value", this.enemy.currentHp);
+			eHealthBar.setAttribute("max", this.enemy.hp);
+			eImg.setAttribute("src", this.enemy.image);
+			enemy_audio.setAttribute("src", this.enemy.cries);
+		}
 		if(this.achievements) this.displayAchievements;
 
 	}
 
-	initPokemon(){
-		this.getNewPlayer();
-		this.getNewEnemy(this.staticRareIndex);
+	async initPokemon(){
+		await this.getNewPlayer();
+		await this.getNewEnemy(this.staticRareIndex);
 	}
 
-	restartGame(){
+	async restartGame(){
 		this.pokeBelt = [];
 		this.checkAutoCatch();
 	  	this.checkSound();
-	  	this.getGameGoal();
+	  	await this.getGameGoal();
 	  	this.getAchievements();
 	  	this.displayAchievements();
-	  	this.initPokemon();
+	  	await this.initPokemon();
 	}
 
 	async initAll(){
@@ -363,7 +358,7 @@ class PokeDaemonGame{
 	  		this.getGameGoal();
 	  		this.getAchievements();
 	  		this.displayAchievements();
-	  		this.initPokemon();
+	  		await this.initPokemon();
 		}
 		else{
 			console.log('API Error: ' + response.status);
